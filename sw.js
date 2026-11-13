@@ -1,8 +1,8 @@
 /* Service Worker Bio Link WebApp — jaringan dulu (no-cache) untuk berkas aplikasi agar
  * pembaruan & segel lisensi selalu terbaru; cadangan offline dari cache.
  * Data dari Apps Script dan nk-license.js TIDAK di-cache di sini. Naikkan VERSI setiap rilis. */
-const VERSI = 'tokoemas-v2';
-const SHELL = ['./', 'index.html', 'css/style.css', 'js/core.js', 'js/qr.js', 'js/public.js', 'js/emas.js', 'js/galeri.js', 'js/app.js', 'js/demo-data.js',
+const VERSI = 'tokoemas-v3';
+const SHELL = ['./', 'index.html', 'css/style.css', 'js/core.js', 'js/qr.js', 'js/public.js', 'js/emas.js', 'js/galeri.js', 'js/app.js', 'js/demo-data.js', 'js/watermark.js',
   'assets/logo.png', 'assets/icon-192.png', 'manifest.webmanifest'];
 
 self.addEventListener('install', e => {

@@ -12,7 +12,9 @@
   const isPC = () => !!(window.matchMedia && matchMedia('(min-width: 900px)').matches);
   const abs = u => { u = img(u, 1200); try { return new URL(u, location.href).href; } catch (e) { return u; } };
   const siteUrl = () => location.href.split('#')[0];
-  const JENIS = { custom: { t: () => T('galeri_custom_judul'), s: () => T('galeri_custom_sub'), lbl: 'pesanan custom', ic: 'photo_library' }, po: { t: () => T('galeri_po_judul'), s: () => T('galeri_po_sub'), lbl: 'pre-order', ic: 'collections' } };
+  const GD = () => A.galeriDaftar();
+  const gInfo = id => { const g = A.galeriDaftar(true).find(x => x.id === id) || { id, nama: id, judul: 'Galeri ' + id, sub: '', icon: 'photo_library' }; return g; };
+  const LBL = id => ({ custom: 'pesanan custom', po: 'pre-order' }[id] || String(gInfo(id).nama || id).toLowerCase());
   const LAYOUT = { grid: ['grid_view', 'Grid'], mosaik: ['auto_awesome_mosaic', 'Mosaik'], masonry: ['view_quilt', 'Masonry'], besar: ['view_day', 'Besar'], rapat: ['apps', 'Rapat'] };
   const layoutsOk = () => String(T('galeri_layouts') || 'grid').split(',').map(x => x.trim()).filter(x => LAYOUT[x]);
   const layoutNow = () => { const ok = layoutsOk(), k = 'gal_' + (isPC() ? 'pc' : 'hp'), u = A.Store.get(k, ''), d = T(isPC() ? 'galeri_layout_pc' : 'galeri_layout_hp'); return ok.indexOf(u) > -1 ? u : ok.indexOf(d) > -1 ? d : ok[0] || 'grid'; };
@@ -71,27 +73,37 @@
     const i = Math.round(t.scrollLeft / t.clientWidth); t.parentNode.querySelectorAll('.kg-dots i').forEach((d, k) => d.classList.toggle('on', k === i));
   }, true);
 
-  /* ======================= BAGIAN GALERI di beranda ======================= */
+  /* ======================= BAGIAN GALERI di beranda (acak + efek berjalan) ======================= */
+  const acak = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   function galeriSection() {
-    const all = items(); if (!all.length) return '';
-    const n = Math.max(4, Math.min(12, +T('galeri_bio_jumlah') || 8)), cu = items('custom').length, po = items('po').length;
-    const pick = all.slice(0, n);
-    return '<section class="gal-bio"><div class="sec-head"><h2 class="sec-title">' + esc(T('galeri_bio_judul')) + '</h2><a class="see-all" href="#/galeri/' + (cu ? 'custom' : 'po') + '">Lihat semua' + I('arrow_forward') + '</a></div>' +
-      '<div class="gal-bio-grid">' + pick.map(g => '<a href="#/galeri/' + g.jenis + '/' + encodeURIComponent(g.id) + '" aria-label="' + esc(g.kategori) + '"><img src="' + esc(img(g.foto, 300)) + '" alt="' + esc(g.kategori) + '" loading="lazy" decoding="async"><span class="gb-j ' + g.jenis + '">' + (g.jenis === 'po' ? 'PO' : 'Custom') + '</span></a>').join('') + '</div>' +
-      '<div class="gal-bio-cta">' + (cu ? '<a class="btn btn-ghost" href="#/galeri/custom" data-nav="galeri">' + I('photo_library') + 'Galeri Custom <small>' + cu + '</small></a>' : '') + (po ? '<a class="btn btn-ghost" href="#/galeri/po" data-nav="galeripo">' + I('collections') + 'Galeri Pre-Order <small>' + po + '</small></a>' : '') + '</div></section>';
+    const aktif = GD().map(g => g.id), all = items().filter(g => aktif.indexOf(g.jenis) > -1); if (!all.length) return '';
+    const n = Math.max(4, Math.min(16, +T('galeri_bio_jumlah') || 8)), efek = T('galeri_bio_efek') || 'jalan';
+    const pick = (T('galeri_bio_acak') === 'TIDAK' ? all : acak(all)).slice(0, efek === 'jalan' ? Math.max(n, 10) : n);
+    const tile = g => '<a href="#/galeri/' + esc(g.jenis) + '/' + encodeURIComponent(g.id) + '" class="gb-it" aria-label="' + esc(gInfo(g.jenis).nama + ' ' + g.kategori) + '"><img src="' + esc(img(g.foto, 300)) + '" alt="' + esc(g.kategori) + '" loading="lazy" decoding="async">' + (A.favBtn ? A.favBtn('g', g.id) : '') + '</a>';
+    let body;
+    if (efek === 'jalan') {
+      const h = Math.ceil(pick.length / 2), r1 = pick.slice(0, h), r2 = pick.slice(h).concat(pick.slice(0, Math.max(0, h - (pick.length - h))));
+      const row = (r, rev) => '<div class="gb-row' + (rev ? ' rev' : '') + '" style="--dur:' + Math.max(18, r.length * 4.5) + 's"><div class="gb-track">' + r.map(tile).join('') + r.map(tile).join('').replace(/<a /g, '<a tabindex="-1" aria-hidden="true" ') + '</div></div>';
+      body = '<div class="gb-marquee">' + row(r1) + row(r2, 1) + '</div>';
+    } else body = '<div class="gal-bio-grid' + (efek === 'muncul' ? ' gb-pop' : '') + '">' + pick.map(tile).join('') + '</div>';
+    const pertama = (GD().find(g => all.some(x => x.jenis === g.id)) || GD()[0] || {}).id || 'custom';
+    return '<section class="gal-bio"><div class="sec-head"><h2 class="sec-title">' + esc(T('galeri_bio_judul')) + '</h2>' +
+      '<a class="gb-lay" href="#/galeri/' + esc(pertama) + '" aria-label="Lihat semua galeri">' + I('grid_view') + '</a></div>' + body +
+      '<a class="btn btn-ghost btn-block gb-all" href="#/galeri/' + esc(pertama) + '">Lihat semua ' + I('chevron_right') + '</a></section>';
   }
   if (A.SECTIONS) { A.SECTIONS.kategori_grid = kgSection; A.SECTIONS.galeri = galeriSection; }
 
   /* ======================= HALAMAN GALERI ======================= */
   const GS = { jenis: 'custom', kat: '', q: '', n: 24 };
   A.page('galeri', {
-    nav: 'galeri', title: () => JENIS[GS.jenis].t(),
+    nav: 'galeri', title: () => gInfo(GS.jenis).judul,
     render(el, param, re, changed) {
       const [j, id] = String(param || '').split('/');
-      const jenis = j === 'po' ? 'po' : 'custom';
+      const jenis = j && /^[a-z0-9-]{2,24}$/.test(j) ? j : ((GD()[0] || {}).id || 'custom');
       if (changed !== false && jenis !== GS.jenis) { GS.kat = ''; GS.q = ''; GS.n = 24; }
       GS.jenis = jenis;
-      document.querySelectorAll('[data-nav]').forEach(a => { if (a.dataset.nav === 'galeri' || a.dataset.nav === 'galeripo') a.classList.toggle('on', a.dataset.nav === (jenis === 'po' ? 'galeripo' : 'galeri')); });
+      const nv = jenis === 'po' ? 'galeripo' : jenis === 'custom' ? 'galeri' : 'galeri-' + jenis;
+      document.querySelectorAll('[data-nav]').forEach(a => { if (/^galeri/.test(a.dataset.nav)) a.classList.toggle('on', a.dataset.nav === nv); });
       if (!A.pub) { el.innerHTML = '<div class="col"><div class="skel" style="height:120px;margin-top:16px"></div><div class="skel" style="height:320px;margin-top:12px"></div></div>'; return; }
       draw(el);
       if (id) { const list = filtered(), i = list.findIndex(g => g.id === id); const all = items(jenis); const k = i > -1 ? i : all.findIndex(g => g.id === id); if (k > -1) lightbox(i > -1 ? list : all, k, true); }
@@ -102,13 +114,13 @@
     return items(GS.jenis).filter(g => (!GS.kat || g.kategori === GS.kat) && (!words.length || words.every(w => (g.kategori + ' ' + g.tag + ' ' + (g.jenis === 'po' ? 'po pre order preorder' : 'custom pesanan')).toLowerCase().indexOf(w) > -1)));
   }
   function draw(el) {
-    const J = JENIS[GS.jenis], all = items(GS.jenis), cats = {};
+    const J = gInfo(GS.jenis), all = items(GS.jenis), cats = {};
     all.forEach(g => { cats[g.kategori] = (cats[g.kategori] || 0) + 1; });
     const urut = String(T('galeri_kategori') || '').split(',').map(x => x.trim()).filter(Boolean);
     const catList = Object.keys(cats).sort((a, b) => { const ia = urut.indexOf(a), ib = urut.indexOf(b); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b); });
     const lay = layoutNow(), oks = layoutsOk();
-    el.innerHTML = '<div class="wide gal-pg"><div class="gal-hero"><div class="gal-sw" role="tablist">' + ['custom', 'po'].map(k => '<a href="#/galeri/' + k + '" class="' + (k === GS.jenis ? 'on' : '') + '">' + I(JENIS[k].ic) + esc(k === 'po' ? 'Pre-Order' : 'Custom') + '<small>' + items(k).length + '</small></a>').join('') + '</div>' +
-      '<h1>' + esc(J.t()) + '</h1><p>' + esc(J.s()) + '</p></div>' +
+    el.innerHTML = '<div class="wide gal-pg"><div class="gal-hero"><div class="gal-sw" role="tablist">' + GD().map(g => '<a href="#/galeri/' + esc(g.id) + '" class="' + (g.id === GS.jenis ? 'on' : '') + '">' + I(g.icon || 'photo_library') + esc(g.nama) + '<small>' + items(g.id).length + '</small></a>').join('') + '</div>' +
+      '<h1>' + esc(J.judul) + '</h1><p>' + esc(J.sub || '') + '</p></div>' +
       '<div class="gal-bar"><div class="search">' + I('search') + '<input type="search" placeholder="Cari model, kategori, mis. cincin nama…" value="' + esc(GS.q) + '" data-gq aria-label="Cari foto"></div>' +
       (oks.length > 1 ? '<div class="gal-lay" role="group" aria-label="Tampilan galeri">' + oks.map(k => '<button type="button" data-lay="' + k + '" class="' + (k === lay ? 'on' : '') + '" title="' + LAYOUT[k][1] + '" aria-label="Tampilan ' + LAYOUT[k][1] + '">' + I(LAYOUT[k][0]) + '</button>').join('') + '</div>' : '') + '</div>' +
       '<div class="pills gal-chips" data-gk><button class="pill' + (GS.kat ? '' : ' on') + '" data-k="">Semua <small>' + all.length + '</small></button>' + catList.map(c => '<button class="pill' + (c === GS.kat ? ' on' : '') + '" data-k="' + esc(c) + '">' + esc(c) + ' <small>' + cats[c] + '</small></button>').join('') + '</div>' +
@@ -125,9 +137,10 @@
     const box = el.querySelector('[data-gg]'), more = el.querySelector('[data-gm]'), list = filtered(), lay = layoutNow();
     const w = { grid: 360, mosaik: 420, masonry: 420, besar: 900, rapat: 240 }[lay] || 400;
     box.className = 'gal gal-' + lay + ' gj-' + esc(T('galeri_jarak') || 'normal') + ' gs-' + esc(T('galeri_sudut') || 'bulat') + (T('galeri_label') === 'TIDAK' || lay === 'rapat' ? ' no-lbl' : '');
-    box.innerHTML = list.length ? list.slice(0, GS.n).map((g, i) => '<button type="button" class="gi" data-gi="' + i + '" aria-label="Lihat foto ' + esc(g.kategori) + '"><img src="' + esc(img(g.foto, w)) + '" alt="' + esc(g.kategori + (g.tag ? ' — ' + g.tag : '')) + '" loading="' + (i < 6 ? 'eager' : 'lazy') + '" decoding="async"><span class="gl">' + esc(g.kategori) + '</span></button>').join('')
+    box.innerHTML = list.length ? list.slice(0, GS.n).map((g, i) => '<div class="gi" role="button" tabindex="0" data-gi="' + i + '" aria-label="Lihat foto ' + esc(g.kategori) + '"><img src="' + esc(img(g.foto, w)) + '" alt="' + esc(g.kategori + (g.tag ? ' — ' + g.tag : '')) + '" loading="' + (i < 6 ? 'eager' : 'lazy') + '" decoding="async"><span class="gl">' + esc(g.kategori) + '</span>' + (A.favBtn ? A.favBtn('g', g.id) : '') + '</div>').join('')
       : '<div class="empty" style="grid-column:1/-1">' + I('search_off') + '<p>Belum ada foto untuk pencarian ini.</p>' + (GS.q || GS.kat ? '<button class="btn btn-ghost btn-sm" data-reset>Tampilkan semua</button>' : '') + '</div>';
-    box.onclick = e => { const b = e.target.closest('[data-gi]'); if (b) lightbox(list, +b.dataset.gi); const r = e.target.closest('[data-reset]'); if (r) { GS.q = ''; GS.kat = ''; draw(el); } };
+    box.onkeydown = e => { const b = e.target.closest('[data-gi]'); if (b && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); b.click(); } };
+    box.onclick = e => { if (e.target.closest('[data-fav]')) return; const b = e.target.closest('[data-gi]'); if (b) lightbox(list, +b.dataset.gi); const r = e.target.closest('[data-reset]'); if (r) { GS.q = ''; GS.kat = ''; draw(el); } };
     more.innerHTML = list.length > GS.n ? '<button class="btn btn-ghost" data-mm>' + I('expand_more') + 'Muat lebih banyak (' + (list.length - GS.n) + ')</button>' : (list.length ? '<span class="muted small">' + list.length + ' foto</span>' : '');
     const mm = more.querySelector('[data-mm]');
     if (io) io.disconnect();
@@ -138,7 +151,7 @@
   function lightbox(list, i, dariLink) {
     if (!list.length) return;
     const o = document.createElement('div'); o.className = 'glb'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true');
-    o.innerHTML = '<div class="glb-top"><button class="glb-b" data-sh aria-label="Bagikan">' + I('share') + '</button><span class="glb-n" data-n></span><button class="glb-b" data-x aria-label="Tutup">' + I('close') + '</button></div>' +
+    o.innerHTML = '<div class="glb-top"><span class="row" style="gap:8px"><button class="glb-b" data-sh aria-label="Bagikan">' + I('share') + '</button><span data-fv></span></span><span class="glb-n" data-n></span><button class="glb-b" data-x aria-label="Tutup">' + I('close') + '</button></div>' +
       '<div class="glb-st" data-st><img alt="" data-im></div><button class="glb-nav prev" data-pv aria-label="Sebelumnya">' + I('chevron_left') + '</button><button class="glb-nav next" data-nx aria-label="Berikutnya">' + I('chevron_right') + '</button>' +
       '<div class="glb-bot"><div class="glb-meta" data-m></div><button class="btn btn-wa glb-wa" data-wa>' + I('chat', 'fill') + 'Tanyakan model ini</button></div>';
     document.body.appendChild(o); document.documentElement.classList.add('glb-open');
@@ -146,12 +159,13 @@
     const show = () => {
       const g = list[i]; im.classList.add('ld'); im.onload = () => im.classList.remove('ld'); im.src = img(g.foto, 1200); im.alt = g.kategori;
       o.querySelector('[data-n]').textContent = (i + 1) + ' / ' + list.length;
-      o.querySelector('[data-m]').innerHTML = '<span class="chip chip-gold">' + I(JENIS[g.jenis].ic) + (g.jenis === 'po' ? 'Pre-Order' : 'Custom') + '</span><span class="chip">' + esc(g.kategori) + '</span>' + (g.tag ? '<span class="glb-tag">' + esc(g.tag) + '</span>' : '');
+      o.querySelector('[data-fv]').innerHTML = A.favBtn ? A.favBtn('g', g.id, 2) : '';
+      o.querySelector('[data-m]').innerHTML = '<span class="chip chip-gold">' + I(gInfo(g.jenis).icon || 'photo_library') + esc(gInfo(g.jenis).nama) + '</span><span class="chip">' + esc(g.kategori) + '</span>' + (g.tag ? '<span class="glb-tag">' + esc(g.tag) + '</span>' : '');
       o.querySelector('[data-pv]').hidden = i <= 0; o.querySelector('[data-nx]').hidden = i >= list.length - 1;
       [list[i + 1], list[i - 1]].forEach(n => { if (n) { const p = new Image(); p.src = img(n.foto, 1200); } });
       try { history.replaceState(null, '', '#/galeri/' + g.jenis + '/' + encodeURIComponent(g.id)); } catch (e) { }
     };
-    const close = () => { o.remove(); document.documentElement.classList.remove('glb-open'); document.removeEventListener('keydown', key); try { history.replaceState(null, '', '#/galeri/' + GS.jenis); } catch (e) { } };
+    const close = () => { o.remove(); document.documentElement.classList.remove('glb-open'); document.removeEventListener('keydown', key); try { history.replaceState(null, '', '#/galeri/' + GS.jenis); } catch (e) { } if (A.cur === 'favorit') A.rerender(); };
     const go = d => { const n = i + d; if (n < 0 || n >= list.length) return; i = n; show(); };
     const key = e => { if (e.key === 'Escape') close(); if (e.key === 'ArrowRight') go(1); if (e.key === 'ArrowLeft') go(-1); };
     document.addEventListener('keydown', key);
@@ -163,11 +177,66 @@
     const link = g => siteUrl() + '#/galeri/' + g.jenis + '/' + encodeURIComponent(g.id);
     o.querySelector('[data-wa]').onclick = () => {
       const g = list[i];
-      const msg = isiPesan(T('teks_pesan_galeri'), { toko: toko(), cabang: '', jenis: JENIS[g.jenis].lbl, kategori: g.kategori + (g.tag ? ' — ' + g.tag : ''), foto: abs(g.foto), link: link(g) });
+      const msg = isiPesan(T('teks_pesan_galeri'), { toko: toko(), cabang: '', jenis: LBL(g.jenis), kategori: g.kategori + (g.tag ? ' — ' + g.tag : ''), foto: abs(g.foto), link: link(g) });
       A.track && A.track('wa', g.id);
       A.pickBranch(msg, { title: 'Tanya model ini — pilih toko' });
     };
-    o.querySelector('[data-sh]').onclick = e => { const g = list[i]; A.shareFoto(g.foto, 'Contoh ' + JENIS[g.jenis].lbl + ' ' + g.kategori + ' di ' + toko(), link(g), e.currentTarget); };
+    o.querySelector('[data-sh]').onclick = e => { const g = list[i]; A.shareFoto(g.foto, 'Contoh ' + LBL(g.jenis) + ' ' + g.kategori + ' di ' + toko(), link(g), e.currentTarget); };
     show();
   }
+
+  /* ======================= FAVORIT ❤️ (wishlist di perangkat pelanggan) ======================= */
+  const FK = 'favorit';
+  const Fav = A.Fav = {
+    all() { const a = A.Store.get(FK, []); return Array.isArray(a) ? a : []; },
+    has(t, id) { return this.all().some(x => x.t === t && x.id === id); },
+    toggle(t, id) { let a = this.all(); const on = !a.some(x => x.t === t && x.id === id); a = on ? [{ t, id, at: Date.now() }].concat(a) : a.filter(x => !(x.t === t && x.id === id)); A.Store.set(FK, a.slice(0, 300)); return on; },
+    del(t, id) { A.Store.set(FK, this.all().filter(x => !(x.t === t && x.id === id))); },
+    clear() { A.Store.set(FK, []); }
+  };
+  A.favBtn = (t, id, v) => { const on = Fav.has(t, id); return '<button type="button" class="fav-b' + (v ? ' v' + v : '') + (on ? ' on' : '') + '" data-fav="' + t + ':' + esc(id) + '" aria-pressed="' + on + '" aria-label="' + (on ? 'Hapus dari Favorit' : 'Simpan ke Favorit') + '">' + I('favorite', on ? 'fill' : '') + '</button>'; };
+  function favBadge() { const n = Fav.all().length; document.querySelectorAll('[data-nav="favorit"]').forEach(a => { let b = a.querySelector('.fav-n'); if (!n) { if (b) b.remove(); return; } if (!b) { b = document.createElement('span'); b.className = 'fav-n'; a.appendChild(b); } b.textContent = n > 99 ? '99+' : n; }); }
+  A.favBadge = favBadge;
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-fav]'); if (!b) return;
+    e.preventDefault(); e.stopPropagation();
+    const [t, id] = [b.dataset.fav.slice(0, 1), b.dataset.fav.slice(2)], on = Fav.toggle(t, id);
+    document.querySelectorAll('[data-fav="' + CSS.escape(b.dataset.fav) + '"]').forEach(x => { x.classList.toggle('on', on); x.setAttribute('aria-pressed', on); x.innerHTML = I('favorite', on ? 'fill' : ''); if (on) { x.classList.remove('pop'); void x.offsetWidth; x.classList.add('pop'); } });
+    if (navigator.vibrate && on) try { navigator.vibrate(18); } catch (er) { }
+    A.toast(on ? '❤️ Disimpan ke Favorit' : 'Dihapus dari Favorit');
+    A.track && A.track('fav', id); favBadge();
+  }, true);
+  document.addEventListener('DOMContentLoaded', () => setTimeout(favBadge, 800));
+  A.on && A.on('pub', () => setTimeout(favBadge, 50));
+
+  A.page('favorit', {
+    nav: 'favorit', title: () => 'Favorit Saya',
+    render(el) {
+      if (!A.pub) { el.innerHTML = '<div class="col"><div class="skel" style="height:220px;margin-top:16px"></div></div>'; return; }
+      const P = A.pub.products || [], G = A.pub.galeri || [], tab = A.Store.ss('favTab') || 'semua';
+      const list = Fav.all().map(f => f.t === 'p' ? { f, p: P.find(x => x.id === f.id) } : { f, g: G.find(x => x.id === f.id) }).filter(x => x.p || x.g);
+      const np = list.filter(x => x.p).length, ng = list.length - np, V = list.filter(x => tab === 'semua' || (tab === 'produk' ? x.p : x.g));
+      favBadge();
+      if (!list.length) { el.innerHTML = '<div class="col emas-pg"><div class="empty fav-empty"><span class="big">' + I('favorite', 'fill') + '</span><h3>Belum ada favorit</h3><p>Tekan ikon ❤️ pada produk atau foto galeri untuk menyimpannya di sini.</p><div class="row wrap" style="justify-content:center;gap:8px"><a class="btn btn-amber" href="#/katalog">' + I('diamond') + 'Lihat Katalog</a><a class="btn btn-ghost" href="#/galeri/' + esc((GD()[0] || {}).id || 'custom') + '">' + I('photo_library') + 'Lihat Galeri</a></div></div></div>'; return; }
+      el.innerHTML = '<div class="wide fav-pg"><div class="fav-hero"><span>' + I('favorite', 'fill') + '</span><div class="grow"><h1>Favorit Saya</h1><p>' + list.length + ' tersimpan di perangkat ini</p></div></div>' +
+        '<div class="pills" data-ft>' + [['semua', 'Semua', list.length], ['produk', 'Produk', np], ['foto', 'Foto Galeri', ng]].map(x => '<button class="pill' + (x[0] === tab ? ' on' : '') + '" data-v="' + x[0] + '">' + x[1] + ' <small>' + x[2] + '</small></button>').join('') + '</div>' +
+        '<div class="fav-grid">' + V.map(x => x.p
+          ? '<div class="fav-it"><a class="fav-th" href="#/produk/' + encodeURIComponent(x.p.id) + '"><img src="' + esc(img((x.p.foto || [])[0], 400)) + '" alt="" loading="lazy"></a><div class="fav-b2"><b class="ell2">' + esc(x.p.nama) + '</b><span class="price">' + A.rp(x.p.harga) + (A.hargaSuffix ? A.hargaSuffix(x.p) : '') + '</span>' +
+            '<div class="fav-acts"><button class="btn btn-wa btn-sm" data-ask="p:' + esc(x.p.id) + '">' + I('chat', 'fill') + 'Tanya</button><button class="icon-btn danger" data-rm="p:' + esc(x.p.id) + '" aria-label="Hapus">' + I('delete') + '</button></div></div></div>'
+          : '<div class="fav-it"><button class="fav-th" data-op="' + esc(x.g.id) + '"><img src="' + esc(img(x.g.foto, 400)) + '" alt="" loading="lazy"><span class="gl">' + esc(gInfo(x.g.jenis).nama) + ' · ' + esc(x.g.kategori) + '</span></button><div class="fav-b2"><b class="ell2">Foto ' + esc(gInfo(x.g.jenis).nama) + '</b><span class="muted small">' + esc(x.g.kategori) + '</span>' +
+            '<div class="fav-acts"><button class="btn btn-wa btn-sm" data-ask="g:' + esc(x.g.id) + '">' + I('chat', 'fill') + 'Tanya</button><button class="icon-btn danger" data-rm="g:' + esc(x.g.id) + '" aria-label="Hapus">' + I('delete') + '</button></div></div></div>').join('') + '</div>' +
+        '<div class="fav-bar"><button class="btn btn-ghost" data-clr>' + I('delete_sweep') + 'Kosongkan</button><button class="btn btn-wa grow" data-all>' + I('chat', 'fill') + 'Tanyakan semua (' + V.length + ')</button></div></div>';
+      el.querySelector('[data-ft]').onclick = e => { const b = e.target.closest('[data-v]'); if (!b) return; A.Store.ss('favTab', b.dataset.v); A.rerender(); };
+      const baris = x => x.p ? '• ' + x.p.nama + ' — ' + A.rp(x.p.harga) + '\n  ' + siteUrl() + '#/produk/' + encodeURIComponent(x.p.id) : '• Foto ' + LBL(x.g.jenis) + ' (' + x.g.kategori + ')\n  ' + abs(x.g.foto);
+      const tanya = arr => A.pickBranch('Halo ' + toko() + ', saya tertarik dengan ' + (arr.length > 1 ? 'beberapa pilihan favorit saya' : 'pilihan ini') + ':\n' + arr.map(baris).join('\n') + '\nMohon info ketersediaan, ukuran & harganya. Terima kasih.', { title: 'Tanyakan — pilih toko' });
+      el.onclick = async e => {
+        const rm = e.target.closest('[data-rm]'), ask = e.target.closest('[data-ask]'), op = e.target.closest('[data-op]');
+        if (rm) { Fav.del(rm.dataset.rm.slice(0, 1), rm.dataset.rm.slice(2)); A.toast('Dihapus dari Favorit'); A.rerender(); }
+        if (ask) { const x = list.find(y => (y.p ? 'p:' + y.p.id : 'g:' + y.g.id) === ask.dataset.ask); if (x) tanya([x]); }
+        if (op) { const gl = V.filter(x => x.g).map(x => x.g), i = gl.findIndex(g => g.id === op.dataset.op); if (i > -1) lightbox(gl, i); }
+        if (e.target.closest('[data-all]')) tanya(V);
+        if (e.target.closest('[data-clr]') && await A.confirm('Kosongkan semua favorit?', 'Kosongkan', true)) { Fav.clear(); A.rerender(); }
+      };
+    }
+  });
 })();

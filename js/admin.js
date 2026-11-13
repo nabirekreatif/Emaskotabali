@@ -46,7 +46,8 @@
     { g: 'Toko Emas' },
     { id: 'emas', t: 'Harga Emas', i: 'monitoring', all: 1 },
     { id: 'lelang', t: 'Lelang', i: 'gavel', all: 1 },
-    { id: 'galeri', t: 'Galeri Custom & PO', i: 'photo_library', all: 1 },
+    { id: 'galeri', t: 'Galeri Foto', i: 'photo_library', all: 1 },
+    { id: 'watermark', t: 'Watermark Foto', i: 'branding_watermark', all: 1 },
     { id: 'sewa', t: 'Sewa Perhiasan', i: 'event_available', all: 1 },
     { id: 'member', t: 'Member', i: 'verified_user' },
     { g: 'Tampilan Link Bio' },
@@ -60,6 +61,7 @@
     { id: 'notif', t: 'WhatsApp & Notifikasi', i: 'forum' },
     { id: 'crm', t: 'CRM Kontak', i: 'contacts' },
     { g: 'Sistem' },
+    { id: 'sistem', t: 'Backend GAS & Database', i: 'dns' },
     { id: 'pengguna', t: 'Admin & Akses', i: 'manage_accounts' },
     { id: 'migrasi', t: 'Migrasi Data', i: 'move_up' },
     { id: 'log', t: 'Log Aktivitas', i: 'history' },
@@ -191,7 +193,7 @@
   VIEWS.menu = function (m) {
     const groups = []; let cur = { g: 'Utama', it: [] }; groups.push(cur);
     MENU.forEach(x => { if (x.hide) return; if (x.g) { if (!isSA() && x.g !== 'Toko Emas') return; cur = { g: x.g, it: [] }; groups.push(cur); return; } if (x.all || isSA()) cur.it.push(x); });
-    const DESK = { beranda: 'Ringkasan & statistik', produk: 'Tambah, edit, stok & harga', emas: 'Harga per kadar, manual / otomatis', lelang: 'Event lelang & tukar kode', galeri: 'Unggah banyak foto contoh custom & PO', sewa: 'Pengajuan sewa member', member: 'Verifikasi KTP, nota & lelang', tampilan: 'Bagian, menu, warna & teks', banner: 'Foto promo bergeser', popup: 'Gambar pop-up saat dibuka', bayar: 'Rekening & QRIS', cabang: 'Outlet, WA & sosmed', layanan: 'Halaman layanan', notif: 'Blast & notifikasi WA', crm: 'Data kontak pelanggan', pengguna: 'Akun admin outlet', migrasi: 'Impor data lama', log: 'Riwayat perubahan', akun: 'Profil & ganti sandi' };
+    const DESK = { beranda: 'Ringkasan & statistik', produk: 'Tambah, edit, stok & harga', emas: 'Harga per kadar, manual / otomatis', lelang: 'Event lelang & tukar kode', galeri: 'Custom, Pre-Order, Ready Stock, Perak & galeri baru', watermark: 'Logo/teks otomatis di setiap foto', sistem: 'Status API, kapasitas, backup & pemulihan', sewa: 'Pengajuan sewa member', member: 'Verifikasi KTP, nota & lelang', tampilan: 'Bagian, menu, warna & teks', banner: 'Foto promo bergeser', popup: 'Gambar pop-up saat dibuka', bayar: 'Rekening & QRIS', cabang: 'Outlet, WA & sosmed', layanan: 'Halaman layanan', notif: 'Blast & notifikasi WA', crm: 'Data kontak pelanggan', pengguna: 'Akun admin outlet', migrasi: 'Impor data lama', log: 'Riwayat perubahan', akun: 'Profil & ganti sandi' };
     m.innerHTML = '<div class="adm-me"><span class="avatar-i">' + esc((A.user.nama || 'A').slice(0, 1).toUpperCase()) + '</span><div class="grow"><b class="ell">' + esc(A.user.nama) + '</b><span class="muted tiny">' + (isSA() ? 'Superadmin' : 'Admin ' + cabNama(A.user.cabang)) + '</span></div><a class="btn btn-ghost btn-sm" href="#/akun">' + I('person') + 'Akun</a></div>' +
       groups.filter(g => g.it.length).map(g => '<div class="adm-grp">' + esc(g.g) + '</div><div class="adm-tiles">' + g.it.map(x => '<a href="#/' + x.id + '">' + I(x.i) + '<b>' + esc(x.t) + '</b><small>' + esc(DESK[x.id] || '') + '</small></a>').join('') + '</div>').join('') +
       '<div class="adm-grp">Lainnya</div><div class="adm-tiles"><a href="' + SITUS() + '" target="_blank">' + I('open_in_new') + '<b>Lihat Link Bio</b><small>Buka halaman publik</small></a><button data-nk-license>' + I('key') + '<b>Lisensi</b><small>Aktivasi template</small></button>' +
@@ -247,7 +249,7 @@
       inp.value = '';
     });
   }
-  function compress(file, max, keepPng) {
+  function compress(file, max, keepPng, wm) {
     return new Promise((res, rej) => {
       if (/svg/.test(file.type)) { const fr = new FileReader(); fr.onload = () => res({ b64: fr.result, mime: 'image/svg+xml' }); fr.onerror = rej; fr.readAsDataURL(file); return; }
       const im = new Image(), url = URL.createObjectURL(file);
@@ -257,15 +259,17 @@
         const png = keepPng && /png/.test(file.type);
         if (!png) { x.fillStyle = '#fff'; x.fillRect(0, 0, w, h); }
         x.drawImage(im, 0, 0, w, h); URL.revokeObjectURL(url);
-        res({ b64: c.toDataURL(png ? 'image/png' : 'image/jpeg', .82), mime: png ? 'image/png' : 'image/jpeg' });
+        const selesai = () => res({ b64: c.toDataURL(png ? 'image/png' : 'image/jpeg', .85), mime: png ? 'image/png' : 'image/jpeg' });
+        // watermark dibakar permanen ke piksel sebelum disimpan (burned-in)
+        if (wm && window.WM) window.WM.bakar(c, wm).then(selesai, e => { A.toast('Watermark dilewati: ' + (e.message || e), 'err'); selesai(); }); else selesai();
       };
       im.onerror = () => rej(new Error('Berkas bukan gambar yang didukung.'));
       im.src = url;
     });
   }
-  async function uploadFile(file, folder) {
+  async function uploadFile(file, folder, wm) {
     try {
-      const c = await compress(file, folder === 'QRIS' ? 1200 : 1400, folder === 'QRIS' || folder === 'Logo');
+      const c = await compress(file, folder === 'QRIS' ? 1200 : 1400, folder === 'QRIS' || folder === 'Logo', wm);
       const r = await A.api('uploadImage', { folder, base64: c.b64, mime: c.mime, nama: file.name.replace(/\.[^.]+$/, '') }, { timeout: 120000 });
       if (!r.success) { A.toast(r.message, 'err'); return null; }
       return r.data;
@@ -403,10 +407,22 @@
     const r = await call('deleteProduct', { id: p.id });
     if (r.success) { A.admin.products = A.admin.products.filter(x => x.id !== p.id); setBoot(A.admin); drawProducts(m); refreshPublic(); }
   }
+  /* ---- watermark per produk (dipakai saat foto ditambahkan) ---- */
+  const POS_LBL = { tl: 'Kiri atas', tc: 'Tengah atas', tr: 'Kanan atas', ml: 'Kiri tengah', mc: 'Tengah', mr: 'Kanan tengah', bl: 'Kiri bawah', bc: 'Tengah bawah', br: 'Kanan bawah' };
+  const wmParse = p => { try { return JSON.parse(p.wm || 'null') || {}; } catch (e) { return {}; } };
+  function wmRow(p) {
+    if (!window.WM) return '';
+    const w = wmParse(p), g = WM.profil(p.cabang), mode = w.mode || (g.aktif ? 'ikut' : 'mati');
+    return '<div class="wm-row"><span class="wm-ic">' + I('branding_watermark') + '</span><select name="wm_mode" aria-label="Watermark foto">' +
+      [['ikut', 'Watermark: ikut pengaturan brand' + (g.aktif ? '' : ' (nonaktif)')], ['mati', 'Tanpa watermark (foto sudah ada watermark)'], ['khusus', 'Watermark khusus produk ini']].map(x => '<option value="' + x[0] + '"' + (x[0] === mode ? ' selected' : '') + '>' + x[1] + '</option>').join('') + '</select>' +
+      '<div class="wm-k" data-wmk><select name="wm_pos" aria-label="Posisi">' + WM.POS.map(k => '<option value="' + k + '"' + (k === (w.pos || g.pos) ? ' selected' : '') + '>' + POS_LBL[k] + '</option>').join('') + '</select><label>Ukuran <input type="number" name="wm_ukuran" min="5" max="100" value="' + (w.ukuran || g.ukuran) + '">%</label></div></div>';
+  }
+  const wmNilai = f => { const m = f.querySelector('[name="wm_mode"]'); return m ? { wm_mode: m.value, wm_pos: f.querySelector('[name="wm_pos"]').value, wm_ukuran: f.querySelector('[name="wm_ukuran"]').value } : {}; };
+  const wmProduk = f => { if (!window.WM) return null; const v = wmNilai(f), cab = (f.querySelector('[name="cabang"]') || {}).value || A.user.cabang; return WM.untukProduk(cab, { mode: v.wm_mode, pos: v.wm_pos, ukuran: v.wm_ukuran }); };
   function productForm(p) {
     p = p || { tipe: 'jual', jenis_logam: 'emas', kadar: '', kategori: A.kategori()[0] || '', status: 'Tersedia', aktif: true, cabang: isSA() ? ((A.branches()[0] || {}).id || 'keduanya') : A.user.cabang, foto: [] };
     const spec = PROD_SPEC(); let foto = (p.foto || []).slice();
-    const o = A.sheet('<form class="f" novalidate>' + '<div class="fld"><span>Foto produk (maks. 5 — foto pertama jadi sampul)</span><div class="photos" data-photos></div><div class="hint">Gambar otomatis dikompres sebelum diunggah ke Google Drive.</div></div>' + form(spec, p) +
+    const o = A.sheet('<form class="f" novalidate>' + '<div class="fld"><span>Foto produk (maks. 5 — foto pertama jadi sampul)</span>' + wmRow(p) + '<div class="photos" data-photos></div><div class="hint">Gambar otomatis dikompres' + (window.WM ? ' & diberi watermark sesuai pilihan di atas' : '') + ' sebelum diunggah ke Google Drive.</div></div>' + form(spec, p) +
       '<div class="row mt8"><button type="button" class="btn btn-ghost" data-x>Batal</button><button class="btn btn-ink grow" data-save>' + I('save') + 'Simpan Produk</button></div></form>', { title: p.id ? 'Ubah Produk' : 'Tambah Produk', lg: true });
     const f = o.querySelector('form'), ph = o.querySelector('[data-photos]');
     const drawPh = () => {
@@ -418,7 +434,8 @@
       if (add) add.onchange = async () => {
         const files = Array.from(add.files).slice(0, 5 - foto.length);
         const slots = files.map(() => { foto.push('…'); return foto.length - 1; }); drawPh();
-        await Promise.all(files.map(async (file, k) => { const r = await uploadFile(file, 'Produk'); foto[slots[k]] = r ? r.url : null; }));
+        const wmP = wmProduk(f);
+        await Promise.all(files.map(async (file, k) => { const r = await uploadFile(file, 'Produk', wmP); foto[slots[k]] = r ? r.url : null; }));
         foto = foto.filter(Boolean); drawPh();
       };
     };
@@ -446,10 +463,12 @@
       ['harga_lelang', 'lelang_kuota'].forEach(n => { const b = fbox(n); if (b) b.hidden = !f.querySelector('[name="lelang"]').checked; });
     };
     f.addEventListener('input', sync); f.addEventListener('change', sync); sync();
+    const wmSync = () => { const k = f.querySelector('[data-wmk]'); if (k) k.hidden = f.querySelector('[name="wm_mode"]').value !== 'khusus'; };
+    f.querySelector('[name="wm_mode"]').addEventListener('change', wmSync); wmSync();
     f.onsubmit = async e => {
       e.preventDefault();
       if (foto.indexOf('…') > -1) return A.toast('Tunggu unggahan foto selesai', 'info');
-      const d = Object.assign(read(f, spec), { id: p.id || '', foto });
+      const d = Object.assign(read(f, spec), { id: p.id || '', foto }, wmNilai(f));
       if (!d.nama) return A.toast('Nama produk wajib diisi', 'err');
       d.berat = String(d.berat || '').replace(',', '.');
       if (!Number(d.harga) && !(d.tipe !== 'sewa' && d.kadar && Number(d.berat) > 0)) return A.toast(d.tipe === 'sewa' ? 'Tarif sewa wajib diisi' : 'Isi harga, atau pilih kadar + berat untuk harga otomatis', 'err');
@@ -479,10 +498,12 @@
   VIEWS.galeri = function (m) {
     let list = Store.get('a:galeri', null);
     m.innerHTML = head('Galeri Pesanan & PO', '<a class="btn btn-ghost btn-sm" href="' + SITUS() + '#/galeri/' + galJ + '" target="_blank">' + I('open_in_new') + 'Lihat galeri</a>') +
-      '<div class="seg" data-gj>' + [['custom', 'Galeri Custom', 'photo_library'], ['po', 'Galeri Pre-Order', 'collections']].map(x => '<button data-v="' + x[0] + '"' + (x[0] === galJ ? ' class="on"' : '') + '>' + I(x[2]) + x[1] + ' <small data-c="' + x[0] + '"></small></button>').join('') + '</div>' +
+      '<div class="gal-tabs"><div class="pills" data-gj>' + A.galeriDaftar(true).map(x => '<button class="pill' + (x.id === galJ ? ' on' : '') + (x.tampil === false ? ' off' : '') + '" data-v="' + esc(x.id) + '">' + I(x.icon || 'photo_library') + esc(x.nama) + ' <span class="cnt" data-c="' + esc(x.id) + '"></span></button>').join('') + '</div>' +
+      (isSA() ? '<button class="btn btn-ghost btn-sm" data-gman>' + I('tune') + 'Kelola galeri</button>' : '') + '</div>' +
       '<div class="panel mt12 gup"><div class="panel-h"><h3>' + I('add_photo_alternate') + 'Unggah banyak foto</h3></div>' +
       '<div class="f2"><div class="fld"><label>Kategori</label><input name="gkat" list="gkats" placeholder="mis. Cincin" value="' + esc(Store.get('gal_lastkat', galKats()[0] || '')) + '"><datalist id="gkats">' + galKats().map(k => '<option value="' + esc(k) + '">').join('') + '</datalist></div>' +
       '<div class="fld"><label>Kata kunci (opsional)</label><input name="gtag" placeholder="mis. nama, inisial, couple"></div></div>' +
+      (window.WM ? '<label class="row wm-sw"><span class="switch"><input type="checkbox" data-gwm' + (Store.get('gal_wm', WM.profil(A.user.cabang).aktif ? 'ya' : 'tidak') === 'ya' ? ' checked' : '') + '><i></i></span><span>Beri watermark otomatis <small class="muted">— matikan bila foto sudah ber-watermark</small></span></label>' : '') +
       '<label class="drop" data-drop><input type="file" accept="image/*" multiple hidden data-gfile>' + I('cloud_upload') + '<b>Pilih / seret foto ke sini</b><small>Bisa pilih puluhan foto sekaligus · tanpa judul & harga · dikompres otomatis</small></label>' +
       '<div class="gq" data-gq></div></div>' +
       '<div class="panel"><div class="panel-h"><h3 data-gt>Foto</h3><div class="row" style="gap:6px"><button class="btn btn-ghost btn-sm" data-selall>' + I('done_all') + 'Pilih semua</button></div></div>' +
@@ -493,13 +514,13 @@
         '<div class="fld"><span>Pilihan tampilan yang boleh dipakai pengunjung</span><div class="lay-pick">' + LAY_ALL.map(l => '<label><input type="checkbox" value="' + l[0] + '"' + (String(T('galeri_layouts')).split(',').indexOf(l[0]) > -1 ? ' checked' : '') + '><span>' + I(l[2]) + l[1] + '</span></label>').join('') + '</div><div class="hint">Pengunjung bisa mengganti tampilan dengan tombol di kanan kotak pencarian. Hanya 1 dipilih = tombol disembunyikan.</div></div>' +
         form(GAL_SPEC(), vals()) + '<button class="btn btn-ink btn-block" data-go>' + I('save') + 'Simpan Tampilan Galeri</button></form></div>' : '');
     const q = x => m.querySelector(x);
-    const counts = () => { if (!list) return; ['custom', 'po'].forEach(j => { const e = q('[data-c="' + j + '"]'); if (e) e.textContent = list.filter(g => g.jenis === j).length; }); };
+    const counts = () => { if (!list) return; A.galeriDaftar(true).map(g => g.id).forEach(j => { const e = q('[data-c="' + j + '"]'); if (e) e.textContent = list.filter(g => g.jenis === j).length; }); };
     const draw = () => {
       if (!list) return; counts();
       const L = list.filter(g => g.jenis === galJ), cats = {}; L.forEach(g => cats[g.kategori] = (cats[g.kategori] || 0) + 1);
       q('[data-gk]').innerHTML = '<button class="pill' + (galK ? '' : ' on') + '" data-k="">Semua <span class="cnt">' + L.length + '</span></button>' + Object.keys(cats).map(c => '<button class="pill' + (c === galK ? ' on' : '') + '" data-k="' + esc(c) + '">' + esc(c) + ' <span class="cnt">' + cats[c] + '</span></button>').join('');
       const V = L.filter(g => !galK || g.kategori === galK);
-      q('[data-gt]').textContent = (galJ === 'po' ? 'Foto Pre-Order' : 'Foto Custom') + ' (' + V.length + ')';
+      q('[data-gt]').textContent = 'Foto ' + ((A.galeriDaftar(true).find(g => g.id === galJ) || {}).nama || galJ) + ' (' + V.length + ')';
       q('[data-gg]').innerHTML = V.length ? V.map(g => '<button class="ag' + (galSel.has(g.id) ? ' sel' : '') + (g.aktif === false ? ' off' : '') + '" data-id="' + esc(g.id) + '"><img src="' + esc(img(g.foto_url, 260)) + '" alt="" loading="lazy"><span class="ag-k">' + esc(g.kategori) + '</span>' + (g.aktif === false ? '<span class="ag-h">' + I('visibility_off') + '</span>' : '') + '<span class="ag-c">' + I('check') + '</span></button>').join('')
         : '<div class="empty" style="grid-column:1/-1">' + I('photo_library') + '<p>Belum ada foto. Unggah foto di atas.</p></div>';
       const bar = q('[data-bar]'); bar.hidden = !galSel.size; q('[data-bn]').textContent = galSel.size + ' dipilih';
@@ -507,6 +528,8 @@
     const load = () => A.api('galeri.list').then(r => { if (r.success) { list = r.data; Store.set('a:galeri', list); galSel.forEach(id => { if (!list.some(g => g.id === id)) galSel.delete(id); }); draw(); } else if (!list) q('[data-gg]').innerHTML = '<div class="note red">' + esc(r.message) + '</div>'; });
     draw(); load();
     q('[data-gj]').onclick = e => { const b = e.target.closest('[data-v]'); if (!b) return; galJ = b.dataset.v; galK = ''; galSel.clear(); m.querySelectorAll('[data-gj] button').forEach(x => x.classList.toggle('on', x === b)); draw(); };
+    if (q('[data-gman]')) q('[data-gman]').onclick = () => kelolaGaleri(list, () => VIEWS.galeri(m));
+    if (!A.galeriDaftar(true).some(g => g.id === galJ)) { galJ = (A.galeriDaftar(true)[0] || {}).id || 'custom'; }
     q('[data-gk]').onclick = e => { const b = e.target.closest('[data-k]'); if (!b) return; galK = b.dataset.k; draw(); };
     q('[data-gg]').onclick = e => { const b = e.target.closest('[data-id]'); if (!b) return; galSel.has(b.dataset.id) ? galSel.delete(b.dataset.id) : galSel.add(b.dataset.id); draw(); };
     q('[data-selall]').onclick = () => { const V = (list || []).filter(g => g.jenis === galJ && (!galK || g.kategori === galK)); const all = V.every(g => galSel.has(g.id)); V.forEach(g => all ? galSel.delete(g.id) : galSel.add(g.id)); draw(); };
@@ -516,15 +539,17 @@
       files = [...files].filter(f => /^image\//.test(f.type)); if (!files.length) return;
       const kat = q('[name="gkat"]').value.trim() || 'Lainnya', tag = q('[name="gtag"]').value.trim(), jenis = galJ;
       Store.set('gal_lastkat', kat);
+      const wmOn = q('[data-gwm]') && q('[data-gwm]').checked, wmG = wmOn && window.WM ? Object.assign(WM.profil(isSA() ? '' : A.user.cabang), { aktif: true }) : null;
+      if (q('[data-gwm]')) Store.set('gal_wm', wmOn ? 'ya' : 'tidak');
       const jobs = files.map((f, i) => { const u = URL.createObjectURL(f), el = document.createElement('div'); el.className = 'gq-it'; el.innerHTML = '<img src="' + u + '" alt=""><i></i>'; qbox.appendChild(el); return { f, el }; });
       let ok = 0, gagal = 0, idx = 0;
       const worker = async () => { while (idx < jobs.length) { const j = jobs[idx++]; j.el.classList.add('up');
-        try { const c = await compress(j.f, 1400); const r = await A.api('galeri.unggah', { jenis, kategori: kat, tag, base64: c.b64, mime: c.mime }, { timeout: 120000 });
+        try { const c = await compress(j.f, 1400, false, wmG); const r = await A.api('galeri.unggah', { jenis, kategori: kat, tag, base64: c.b64, mime: c.mime }, { timeout: 120000 });
           if (!r.success) throw new Error(r.message); ok++; j.el.className = 'gq-it done'; (list = list || []).unshift(r.data); }
         catch (er) { gagal++; j.el.className = 'gq-it err'; j.el.title = er.message || 'Gagal'; } } };
       await Promise.all([worker(), worker(), worker()]);
       Store.set('a:galeri', list); draw(); refreshPublic();
-      A.toast(ok + ' foto masuk ' + (jenis === 'po' ? 'Galeri PO' : 'Galeri Custom') + ' · ' + kat + (gagal ? ' · ' + gagal + ' gagal' : ''), gagal ? 'err' : 'ok');
+      A.toast(ok + ' foto masuk Galeri ' + ((A.galeriDaftar(true).find(g => g.id === jenis) || {}).nama || jenis) + ' · ' + kat + (gagal ? ' · ' + gagal + ' gagal' : ''), gagal ? 'err' : 'ok');
       if (A.sound) A.sound('ok');
       setTimeout(() => { qbox.querySelectorAll('.done').forEach(x => x.remove()); }, 2500);
     };
@@ -540,7 +565,8 @@
       let d = null;
       if (a === 'kat') { const o = A.sheet('<form class="f"><div class="fld"><label>Kategori baru untuk ' + ids.length + ' foto</label><input name="k" list="gkats2" required><datalist id="gkats2">' + galKats().map(k => '<option value="' + esc(k) + '">').join('') + '</datalist></div><div class="fld"><label>Kata kunci (kosongkan bila tidak diubah)</label><input name="t"></div><button class="btn btn-ink btn-block">' + I('save') + 'Simpan</button></form>', { title: 'Ubah Kategori' });
         o.querySelector('form').onsubmit = async ev => { ev.preventDefault(); const f = ev.target, x = { ids, kategori: f.k.value.trim() }; if (f.t.value.trim()) x.tag = f.t.value.trim(); const r = await call('galeri.ubah', x, f.querySelector('button')); if (r.success) { o.close(); galSel.clear(); load(); refreshPublic(); } }; return; }
-      if (a === 'pindah') d = { ids, jenis: galJ === 'po' ? 'custom' : 'po' };
+      if (a === 'pindah') { const tuj = A.galeriDaftar(true).filter(g => g.id !== galJ); const o = A.sheet('<div class="list">' + tuj.map(g => '<button class="li" data-to="' + esc(g.id) + '" style="width:100%;text-align:left"><span class="avatar-i">' + I(g.icon || 'photo_library') + '</span><div class="grow"><b>' + esc(g.judul || g.nama) + '</b></div>' + I('chevron_right') + '</button>').join('') + '</div>', { title: 'Pindahkan ' + ids.length + ' foto ke…' });
+        o.querySelector('.list').onclick = async ev => { const t = ev.target.closest('[data-to]'); if (!t) return; const rr = await call('galeri.ubah', { ids, jenis: t.dataset.to }, t); if (rr.success) { o.close(); galSel.clear(); load(); refreshPublic(); } }; return; }
       if (a === 'sembunyi') { const sel = list.filter(g => galSel.has(g.id)); d = { ids, aktif: sel.some(g => g.aktif === false) }; }
       if (a === 'atas') d = { ids, keAtas: true };
       if (a === 'hapus') { if (!await A.confirm('Hapus ' + ids.length + ' foto dari galeri? Foto juga dibuang dari Drive.', 'Hapus', true)) return; const r = await call('galeri.hapus', { ids }, b); if (r.success) { galSel.clear(); list = list.filter(g => ids.indexOf(g.id) < 0); draw(); refreshPublic(); } return; }
@@ -551,6 +577,172 @@
       if (lays.indexOf(d.galeri_layout_hp) < 0) d.galeri_layout_hp = lays[0]; if (lays.indexOf(d.galeri_layout_pc) < 0) d.galeri_layout_pc = lays[0];
       const r = await saveSet(d, gs.querySelector('[data-go]')); if (r.success) A.toast('Tampilan galeri disimpan'); };
   };
+
+  /* ---- kelola daftar galeri: tambah galeri baru, ubah nama/ikon, urutkan, sembunyikan, hapus ---- */
+  function kelolaGaleri(foto, done) {
+    let list = A.galeriDaftar(true).map(x => Object.assign({}, x));
+    const o = A.sheet('<div class="note">' + I('info') + '<div>Tiap galeri punya halaman sendiri <span class="mono">#/galeri/&lt;kode&gt;</span>, bisa dipasang di Menu, Navigasi bawah, atau Menu Kategori.</div></div><div class="list mt12" data-gl></div>' +
+      '<div class="row mt12 wrap"><button class="btn btn-ghost" data-add>' + I('add') + 'Galeri baru</button><button class="btn btn-ink grow" data-save>' + I('save') + 'Simpan</button></div>', { title: 'Kelola Galeri', lg: true });
+    const gl = o.querySelector('[data-gl]'), n = id => (foto || []).filter(g => g.jenis === id).length;
+    const draw = () => { gl.innerHTML = list.map((g, i) => '<div class="li menu-row' + (g.tampil === false ? ' off' : '') + '"><span class="avatar-i">' + I(g.icon || 'photo_library') + '</span><div class="grow"><b class="ell">' + esc(g.judul || g.nama) + '</b><div class="meta"><span class="mono">#/galeri/' + esc(g.id) + '</span><span>' + n(g.id) + ' foto</span></div></div>' +
+      '<div class="acts"><button class="icon-btn" data-u="' + i + '"' + (i ? '' : ' disabled') + ' aria-label="Naik">' + I('arrow_upward') + '</button><label class="switch"><input type="checkbox" data-t="' + i + '"' + (g.tampil !== false ? ' checked' : '') + ' aria-label="Tampilkan"><i></i></label><button class="icon-btn" data-e="' + i + '" aria-label="Ubah">' + I('edit') + '</button><button class="icon-btn danger" data-d="' + i + '" aria-label="Hapus">' + I('delete') + '</button></div></div>').join(''); };
+    const edit = (g, baru, cb) => {
+      const e2 = A.sheet('<form class="f" novalidate><div class="f2"><div class="fld"><label>Nama singkat (tab & tombol)</label><input name="nama" value="' + esc(g.nama || '') + '" required maxlength="24"></div><div class="fld"><label>Kode halaman</label><input name="id" value="' + esc(g.id || '') + '"' + (baru ? '' : ' disabled') + ' placeholder="mis. emas-muda" pattern="[a-z0-9-]{2,24}"></div></div>' +
+        '<div class="fld"><label>Judul halaman</label><input name="judul" value="' + esc(g.judul || '') + '"></div><div class="fld"><label>Keterangan</label><textarea name="sub" rows="2">' + esc(g.sub || '') + '</textarea></div>' +
+        '<div class="fld"><span>Ikon</span><input type="hidden" name="icon" value="' + esc(g.icon || 'photo_library') + '"><button type="button" class="btn btn-ghost btn-sm" data-iconf="icon">' + I(g.icon || 'photo_library') + '<span>Ganti ikon</span></button></div>' +
+        '<button class="btn btn-ink btn-block">' + I('check') + 'Terapkan</button></form>', { title: baru ? 'Galeri Baru' : 'Ubah Galeri' });
+      const f = e2.querySelector('form'); bindIconFields(f);
+      f.nama.addEventListener('input', () => { if (baru && !f.id.dataset.ubah) f.id.value = f.nama.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 24); });
+      f.id.addEventListener('input', () => { f.id.dataset.ubah = 1; });
+      f.onsubmit = ev => { ev.preventDefault(); const id = baru ? f.id.value.trim() : g.id;
+        if (!f.nama.value.trim()) return A.toast('Isi nama galeri', 'err');
+        if (!/^[a-z0-9-]{2,24}$/.test(id)) return A.toast('Kode halaman: huruf kecil, angka, tanda minus (2–24)', 'err');
+        if (baru && list.some(x => x.id === id)) return A.toast('Kode sudah dipakai galeri lain', 'err');
+        Object.assign(g, { id, nama: f.nama.value.trim(), judul: f.judul.value.trim() || 'Galeri ' + f.nama.value.trim(), sub: f.sub.value.trim(), icon: f.icon.value || 'photo_library', tampil: g.tampil !== false });
+        e2.close(); cb && cb(g); draw(); };
+    };
+    gl.onclick = async e => { const u = e.target.closest('[data-u]'), ed = e.target.closest('[data-e]'), d = e.target.closest('[data-d]');
+      if (u) { const i = +u.dataset.u; [list[i - 1], list[i]] = [list[i], list[i - 1]]; draw(); }
+      if (ed) edit(list[+ed.dataset.e], false);
+      if (d) { const g = list[+d.dataset.d]; if (n(g.id)) return A.toast('Galeri masih berisi ' + n(g.id) + ' foto. Pindahkan/hapus fotonya dulu, atau matikan saja.', 'err'); if (list.length < 2) return; if (await A.confirm('Hapus galeri "' + g.nama + '"?', 'Hapus', true)) { list.splice(+d.dataset.d, 1); draw(); } } };
+    gl.onchange = e => { const t = e.target.closest('[data-t]'); if (t) { list[+t.dataset.t].tampil = t.checked; draw(); } };
+    o.querySelector('[data-add]').onclick = () => edit({ icon: 'photo_library', tampil: true }, true, g => list.push(g));
+    o.querySelector('[data-save]').onclick = async e => { const r = await saveSet({ galeri_daftar: JSON.stringify(list) }, e.currentTarget); if (r.success) { A.toast('Daftar galeri disimpan'); o.close(); done && done(); } };
+    draw();
+  }
+
+  /* ======================= WATERMARK FOTO — Advanced Dynamic Watermark Manager ======================= */
+  let wmTab = 'global', wmDev = 'mobile', wmSample = '';
+  VIEWS.watermark = function (m) {
+    if (!window.WM) { m.innerHTML = head('Watermark Foto') + '<div class="note red">Modul watermark tidak termuat.</div>'; return; }
+    const W = WM.semua(), sa = isSA(), brands = A.branches();
+    if (!sa) wmTab = A.user.cabang;
+    const prof = () => wmTab === 'global' ? W.global : (W.brand[wmTab] = Object.assign({ khusus: false }, W.global, W.brand[wmTab] || {}));
+    const samples = [].concat(...(A.admin.products || []).map(p => (p.foto || []).slice(0, 1))).filter(Boolean).slice(0, 12);
+    if (!wmSample) wmSample = samples[0] || 'assets/contoh/cincin-polos.jpg';
+    m.innerHTML = head('Watermark Foto') +
+      '<div class="note">' + I('branding_watermark') + '<div>Watermark <b>dibakar permanen</b> ke foto saat diunggah (produk & galeri), jadi tetap terlihat saat diunduh atau dibagikan ke WhatsApp. Foto yang sudah ada tidak berubah. Saat menambah produk/foto galeri Anda tetap bisa memilih <b>tanpa watermark</b>.</div></div>' +
+      (sa ? '<div class="pills mt12" data-wt>' + [['global', 'Global (semua)']].concat(brands.map(b => [b.id, b.nama])).map(x => '<button class="pill' + (x[0] === wmTab ? ' on' : '') + '" data-v="' + esc(x[0]) + '">' + (x[0] === 'global' ? I('public') : I('storefront')) + esc(x[1]) + '</button>').join('') + '</div>' : '') +
+      '<div class="wm-wrap mt12"><div class="panel wm-prev"><div class="panel-h"><h3>' + I('visibility') + 'Pratinjau langsung</h3><div class="seg sm" data-dev><button data-v="mobile"' + (wmDev === 'mobile' ? ' class="on"' : '') + '>' + I('smartphone') + 'Mobile</button><button data-v="desktop"' + (wmDev === 'desktop' ? ' class="on"' : '') + '>' + I('computer') + 'Desktop</button></div></div>' +
+      '<div class="wm-stage ' + wmDev + '" data-stage><div class="wm-card"><canvas data-cv></canvas><div class="wm-cap"><b>' + esc(((A.admin.products || [])[0] || {}).nama || 'Contoh produk') + '</b><small>Rp 4.800.000</small></div></div></div>' +
+      '<div class="wm-samples" data-smp>' + samples.map(u => '<button data-u="' + esc(u) + '"' + (u === wmSample ? ' class="on"' : '') + '><img src="' + esc(img(u, 120)) + '" alt=""></button>').join('') + '<label class="wm-up" title="Coba dengan foto lain">' + I('add_photo_alternate') + '<input type="file" accept="image/*" hidden data-smpf></label></div></div>' +
+      '<div class="panel"><form class="f" data-wf></form></div></div>' +
+      '<div class="adm-save"><button class="btn btn-ink btn-block" data-save>' + I('save') + 'Simpan Watermark</button></div>';
+    const q = x => m.querySelector(x), wf = q('[data-wf]'), cv = q('[data-cv]');
+    const POS_ORD = ['tl', 'tc', 'tr', 'ml', 'mc', 'mr', 'bl', 'bc', 'br'];
+    const sl = (k, t, min, max, unit) => '<div class="wm-sl"><label>' + t + ' <b data-o="' + k + '"></b></label><input type="range" name="' + k + '" min="' + min + '" max="' + max + '" step="1" data-unit="' + (unit || '') + '"></div>';
+    const formHtml = () => {
+      const p = prof(), brand = wmTab !== 'global';
+      return (brand ? '<label class="row wm-sw"><span class="switch"><input type="checkbox" name="khusus"' + (p.khusus ? ' checked' : '') + '><i></i></span><span><b>Pengaturan khusus brand ini</b><br><small class="muted">Mati = mengikuti pengaturan Global</small></span></label>' : '') +
+        '<fieldset data-fs' + (brand && !p.khusus ? ' disabled' : '') + '>' +
+        '<label class="row wm-sw"><span class="switch"><input type="checkbox" name="aktif"' + (p.aktif ? ' checked' : '') + '><i></i></span><span><b>Watermark aktif</b><br><small class="muted">Default saat menambah produk & foto galeri</small></span></label>' +
+        '<div class="fld"><span>Mode</span><div class="seg" data-mode>' + [['logo', 'Logo'], ['teks', 'Teks'], ['logo_teks', 'Logo + Teks']].map(x => '<button type="button" data-v="' + x[0] + '"' + (p.mode === x[0] ? ' class="on"' : '') + '>' + x[1] + '</button>').join('') + '</div></div>' +
+        '<div class="fld" data-logo><span>Logo brand</span><div class="row" style="gap:10px"><span class="wm-logo"><img data-li alt=""></span><div class="grow"><label class="pick"><input type="radio" name="logoSrc" value="usaha"' + (!p.logo ? ' checked' : '') + '><span>Logo usaha (bawaan)</span></label><label class="pick"><input type="radio" name="logoSrc" value="unggah"' + (p.logo ? ' checked' : '') + '><span>Logo khusus</span></label></div>' +
+        '<label class="btn btn-ghost btn-sm">' + I('upload') + 'Unggah PNG/SVG/WebP<input type="file" accept="image/png,image/svg+xml,image/webp" hidden data-lf></label></div><input type="hidden" name="logo" value="' + esc(p.logo || '') + '"></div>' +
+        '<div class="fld" data-teks><label>Teks watermark</label><input name="teks" value="' + esc(p.teks || '') + '" maxlength="60" placeholder="' + esc(T('nama_toko')) + '"></div>' +
+        '<div class="fld"><span>Posisi</span><div class="wm-pos-wrap"><div class="wm-pos" data-pos>' + POS_ORD.map(k => '<button type="button" data-v="' + k + '"' + (p.pos === k ? ' class="on"' : '') + ' aria-label="' + POS_LBL[k] + '"><i></i></button>').join('') + '</div>' +
+        '<div class="grow"><div class="seg sm" data-pola><button type="button" data-v="tunggal"' + (p.pola !== 'ulang' ? ' class="on"' : '') + '>Tunggal</button><button type="button" data-v="ulang"' + (p.pola === 'ulang' ? ' class="on"' : '') + '>Berulang</button></div><p class="muted small" data-posl></p></div></div></div>' +
+        sl('ukuran', 'Ukuran', 5, 100, '%') + sl('opacity', 'Transparansi (keterlihatan)', 0, 100, '%') + sl('rotasi', 'Rotasi', -180, 180, '°') +
+        '<div class="f2">' + sl('mx', 'Jarak tepi horizontal', 0, 40, '%') + sl('my', 'Jarak tepi vertikal', 0, 40, '%') + '</div>' +
+        '<div class="fld"><span>Warna logo/teks</span><div class="row" style="gap:8px"><div class="seg sm" data-warna><button type="button" data-v="original"' + (p.warna !== 'custom' ? ' class="on"' : '') + '>Original</button><button type="button" data-v="custom"' + (p.warna === 'custom' ? ' class="on"' : '') + '>Custom</button></div><input type="color" name="warnaCustom" value="' + esc(p.warnaCustom || '#FFFFFF') + '" aria-label="Warna custom"></div></div>' +
+        '<div class="fld"><span>Efek</span><div class="wm-fx">' + [['shadow', 'Shadow', 'shadow'], ['glow', 'Glow', 'flare'], ['outline', 'Outline', 'border_style']].map(x => '<label><input type="checkbox" name="' + x[0] + '"' + (p[x[0]] ? ' checked' : '') + '><span>' + I(x[2]) + x[1] + '</span></label>').join('') + '</div></div>' +
+        '<div class="fld"><span>Layer</span><div class="seg sm" data-layer><button type="button" data-v="depan"' + (p.layer !== 'belakang' ? ' class="on"' : '') + '>Depan (jelas)</button><button type="button" data-v="belakang"' + (p.layer === 'belakang' ? ' class="on"' : '') + '>Belakang (menyatu)</button></div></div>' +
+        '<button type="button" class="btn btn-ghost btn-sm" data-reset>' + I('restart_alt') + 'Kembalikan bawaan</button></fieldset>';
+    };
+    let tick = 0, baseImg = null;
+    const loadBase = () => new Promise(res => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = /^(blob:|data:)/.test(wmSample) ? wmSample : img(wmSample, 900); });
+    const render = async () => {
+      const my = ++tick; if (!baseImg) baseImg = await loadBase(); if (my !== tick) return;
+      const sz = wmDev === 'mobile' ? 600 : 1000, im = baseImg, k = im ? Math.min(1, sz / Math.max(im.naturalWidth, im.naturalHeight)) : 1;
+      cv.width = im ? Math.round(im.naturalWidth * k) : sz; cv.height = im ? Math.round(im.naturalHeight * k) : sz;
+      const x = cv.getContext('2d'); x.fillStyle = '#EFE7D8'; x.fillRect(0, 0, cv.width, cv.height); if (im) x.drawImage(im, 0, 0, cv.width, cv.height);
+      const p = WM.norm(wmTab !== 'global' && !prof().khusus ? W.global : prof());
+      if (p.aktif) try { await WM.bakar(cv, p, { pratinjau: true }); } catch (e) { }
+    };
+    const sync = () => {
+      const p = prof();
+      ['ukuran', 'opacity', 'rotasi', 'mx', 'my'].forEach(k => { const i = wf.querySelector('[name="' + k + '"]'); if (i) { if (document.activeElement !== i) i.value = p[k]; wf.querySelector('[data-o="' + k + '"]').textContent = i.value + i.dataset.unit; } });
+      const dl = wf.querySelector('[data-logo]'), dt = wf.querySelector('[data-teks]'); if (dl) dl.hidden = p.mode === 'teks'; if (dt) dt.hidden = p.mode === 'logo';
+      const li = wf.querySelector('[data-li]'); if (li) li.src = img(p.logo || T('logo') || 'assets/logo.png', 120);
+      const pl = wf.querySelector('[data-posl]'); if (pl) pl.textContent = p.pola === 'ulang' ? 'Watermark diulang memenuhi foto (anti-crop).' : POS_LBL[p.pos];
+      wf.querySelector('[name="warnaCustom"]').hidden = p.warna !== 'custom';
+      requestAnimationFrame(render);
+    };
+    const bind = () => {
+      wf.innerHTML = formHtml();
+      const p = () => prof();
+      wf.addEventListener('input', e => { const t = e.target, k = t.name; if (!k) return;
+        if (t.type === 'range') p()[k] = Number(t.value); else if (t.type === 'checkbox') { p()[k] = t.checked; if (k === 'khusus') wf.querySelector('[data-fs]').disabled = !t.checked; }
+        else if (k === 'teks' || k === 'warnaCustom') p()[k] = t.value;
+        else if (k === 'logoSrc') { if (t.value === 'usaha') { p().logo = ''; wf.querySelector('[name="logo"]').value = ''; } }
+        sync(); });
+      wf.addEventListener('change', e => { if (e.target.name === 'logoSrc') wf.dispatchEvent(new Event('input')); });
+      const seg = (sel, key) => { const b = wf.querySelector(sel); if (b) b.onclick = e => { const x = e.target.closest('[data-v]'); if (!x) return; p()[key] = x.dataset.v; b.querySelectorAll('[data-v]').forEach(y => y.classList.toggle('on', y === x)); sync(); }; };
+      seg('[data-mode]', 'mode'); seg('[data-pos]', 'pos'); seg('[data-pola]', 'pola'); seg('[data-warna]', 'warna'); seg('[data-layer]', 'layer');
+      wf.querySelector('[data-lf]').onchange = async e => { const file = e.target.files[0]; if (!file) return; const lab = e.target.closest('label'); lab.classList.add('loading');
+        const r = await uploadFile(file, 'Logo'); lab.classList.remove('loading'); if (!r) return;
+        p().logo = r.url; wf.querySelector('[name="logo"]').value = r.url; wf.querySelector('[name="logoSrc"][value="unggah"]').checked = true; sync(); A.toast('Logo watermark diunggah'); };
+      wf.querySelector('[data-reset]').onclick = () => { const kh = p().khusus; Object.assign(p(), WM.DEF, { teks: T('nama_toko') || '', logo: '' }, wmTab !== 'global' ? { khusus: kh } : {}); bind(); };
+      sync();
+    };
+    bind();
+    if (q('[data-wt]')) q('[data-wt]').onclick = e => { const b = e.target.closest('[data-v]'); if (!b) return; wmTab = b.dataset.v; m.querySelectorAll('[data-wt] .pill').forEach(x => x.classList.toggle('on', x === b)); bind(); };
+    q('[data-dev]').onclick = e => { const b = e.target.closest('[data-v]'); if (!b) return; wmDev = b.dataset.v; q('[data-stage]').className = 'wm-stage ' + wmDev; m.querySelectorAll('[data-dev] button').forEach(x => x.classList.toggle('on', x === b)); render(); };
+    q('[data-smp]').onclick = e => { const b = e.target.closest('[data-u]'); if (!b) return; wmSample = b.dataset.u; baseImg = null; m.querySelectorAll('[data-smp] button').forEach(x => x.classList.toggle('on', x === b)); render(); };
+    q('[data-smpf]').onchange = e => { const f = e.target.files[0]; if (!f) return; wmSample = URL.createObjectURL(f); baseImg = null; render(); };
+    q('[data-save]').onclick = async e => {
+      Object.keys(W.brand).forEach(k => { if (!W.brand[k].khusus) delete W.brand[k]; });
+      const r = await saveSet({ wm: JSON.stringify(W) }, e.currentTarget); if (r.success) A.toast('Watermark disimpan — berlaku untuk unggahan berikutnya');
+    };
+  };
+
+  /* ======================= BACKEND GAS & BASIS DATA ======================= */
+  const SYS_TABEL = ['Produk', 'Kadar', 'Galeri', 'Member', 'Sewa', 'LelangKlaim', 'Banner', 'Layanan', 'Rekening', 'Cabang', 'Sosmed', 'Pengaturan', 'Bagian', 'Pengguna', 'HargaLog', 'CRM_Kontak', 'Statistik', 'Log'];
+  VIEWS.sistem = function (m) {
+    const c = Store.get('a:sys', null);
+    m.innerHTML = head('Backend GAS & Basis Data', '<button class="btn btn-ghost btn-sm" data-ref>' + I('refresh') + 'Periksa ulang</button>') + '<div data-sys>' + (c ? '' : '<div class="skel" style="height:260px"></div>') + '</div>';
+    const box = m.querySelector('[data-sys]');
+    const t0 = performance.now();
+    const go = () => A.api('sys.status').then(r => { if (!m.isConnected || view !== 'sistem') return; if (!r.success) { box.innerHTML = '<div class="note red">' + I('cloud_off') + '<div><b>API tidak merespons:</b> ' + esc(r.message) + '</div></div>'; return; } r.data.rtt = Math.round(performance.now() - t0); Store.set('a:sys', r.data); draw(r.data); });
+    const draw = d => {
+      const a = d.api, db = d.db, bk = d.backup, pct = Math.min(100, db.persen), lvl = pct > 80 ? 'red' : pct > 50 ? 'amber' : 'ok';
+      box.innerHTML = '<div class="kpis"><div class="kpi ' + (a.ok ? 'ok' : 'red') + '"><span>' + I('api') + 'Status API</span><b class="sm">' + (a.ok ? 'Online' : 'Gangguan') + '</b><small>' + (d.rtt ? 'respons ' + d.rtt + ' ms · server ' + a.ms + ' ms' : 'server ' + a.ms + ' ms') + '</small></div>' +
+        '<div class="kpi"><span>' + I('table_view') + 'Kapasitas Sheets</span><b class="sm">' + (100 - pct).toFixed(2).replace('.', ',') + '% sisa</b><small>' + db.selDipakai.toLocaleString('id-ID') + ' / 10 juta sel</small></div></div>' +
+        '<div class="panel"><div class="panel-h"><h3>' + I('database') + 'Basis data (Google Sheets)</h3><a class="btn btn-ghost btn-sm" href="' + esc(db.url) + '" target="_blank" rel="noopener">' + I('open_in_new') + 'Buka</a></div>' +
+        '<div class="cap"><div class="cap-bar ' + lvl + '"><i style="width:' + Math.max(1, pct) + '%"></i></div><div class="row small muted" style="justify-content:space-between"><span>Terpakai ' + pct.toFixed(2).replace('.', ',') + '%</span><span>' + db.totalBaris.toLocaleString('id-ID') + ' baris data</span></div></div>' +
+        '<div class="sys-tbl mt12">' + db.sheets.map(x => '<div><b>' + esc(x.nama) + '</b><span>' + x.baris.toLocaleString('id-ID') + ' baris · ' + x.kolom + ' kolom</span><small>' + x.sel.toLocaleString('id-ID') + ' sel</small></div>').join('') + '</div>' +
+        '<p class="muted small mt8">Batas Google Sheets 10 juta sel per file (termasuk sel kosong pada lembar). Bila di atas 80%, arsipkan Log/Statistik lama.</p></div>' +
+        '<div class="panel"><div class="panel-h"><h3>' + I('dns') + 'Google Apps Script</h3></div><div class="sys-kv">' +
+        [['Aplikasi', a.aplikasi], ['Zona waktu', a.zona], ['Pemicu latar', (a.pemicu || []).length ? a.pemicu.join(', ') + ' ✓' : '⚠ belum terpasang — jalankan pasangTrigger()'], ['Sisa kuota email hari ini', a.kuotaEmail == null ? '-' : a.kuotaEmail],
+          ['Harga emas', a.sumberHarga === 'goldapi' ? 'Otomatis GoldAPI ' + (a.goldapi ? '✓ key tersimpan' : '⚠ key kosong') : 'Manual'], ['WhatsApp (Fonnte)', a.fonnte ? 'Token tersimpan ✓' : 'Belum diatur'], ['Versi data (cache)', a.versiData], ['Diperiksa', tgl(a.waktu)]].map(x => '<div><span>' + x[0] + '</span><b>' + esc(String(x[1])) + '</b></div>').join('') + '</div>' +
+        (a.url ? '<p class="small muted mt8 ell">URL /exec: <span class="mono">' + esc(a.url) + '</span></p>' : '') + '</div>' +
+        '<div class="panel"><div class="panel-h"><h3>' + I('backup') + 'Backup & pemulihan</h3><button class="btn btn-ink btn-sm" data-bk>' + I('cloud_upload') + 'Backup sekarang</button></div>' +
+        '<form class="f" data-bkf><div class="f2"><div class="fld"><label>Backup otomatis</label><select name="backup_otomatis">' + [['harian', 'Setiap hari'], ['mingguan', 'Setiap minggu'], ['mati', 'Mati']].map(x => '<option value="' + x[0] + '"' + (bk.otomatis === x[0] ? ' selected' : '') + '>' + x[1] + '</option>').join('') + '</select></div>' +
+        '<div class="fld"><label>Simpan maksimal</label><select name="backup_simpan">' + [5, 10, 20, 30].map(x => '<option' + (bk.simpan === x ? ' selected' : '') + '>' + x + '</option>').join('') + '</select></div></div></form>' +
+        '<p class="small muted">Backup = salinan utuh spreadsheet di folder Drive <b>Backup_Database</b>. Terakhir: ' + esc(bk.terakhir ? tgl(bk.terakhir) : 'belum pernah') + '</p>' +
+        '<div class="list mt8">' + (bk.daftar.length ? bk.daftar.map(b => '<div class="li"><span class="avatar-i">' + I('inventory') + '</span><div class="grow"><b class="ell">' + esc(b.nama) + '</b><div class="meta"><span>' + esc(tgl(b.dibuat)) + '</span></div></div><div class="acts"><a class="icon-btn" href="' + esc(b.url) + '" target="_blank" rel="noopener" aria-label="Buka">' + I('open_in_new') + '</a><button class="btn btn-ghost btn-sm" data-rs="' + esc(b.id) + '">' + I('settings_backup_restore') + 'Pulihkan</button><button class="icon-btn danger" data-hb="' + esc(b.id) + '" aria-label="Hapus">' + I('delete') + '</button></div></div>').join('') : '<div class="empty">' + I('backup') + '<p>Belum ada backup.</p></div>') + '</div>' +
+        '<button class="btn btn-ghost btn-block mt12" data-exp>' + I('download') + 'Unduh semua data (JSON)</button></div>';
+      box.querySelector('[data-bk]').onclick = async e => { const r = await call('sys.backup', {}, e.currentTarget, { label: 'Membuat backup…' }); if (r.success) go(); };
+      box.querySelector('[data-bkf]').onchange = async e => { const f = e.currentTarget; const r = await saveSet({ backup_otomatis: f.backup_otomatis.value, backup_simpan: f.backup_simpan.value }); if (r.success) A.toast('Pengaturan backup disimpan'); };
+      box.querySelectorAll('[data-hb]').forEach(b => b.onclick = async () => { if (!await A.confirm('Hapus backup ini? (dipindah ke sampah Drive)', 'Hapus', true)) return; const r = await call('sys.hapusBackup', { id: b.dataset.hb }, b); if (r.success) go(); });
+      box.querySelectorAll('[data-rs]').forEach(b => b.onclick = () => pulihkan(d.backup.daftar.find(x => x.id === b.dataset.rs), go));
+      box.querySelector('[data-exp]').onclick = async e => { const r = await call('sys.export', {}, e.currentTarget, { label: 'Menyiapkan…', silent: 1 }); if (!r.success) return;
+        const a2 = document.createElement('a'); a2.href = URL.createObjectURL(new Blob([JSON.stringify(r.data, null, 1)], { type: 'application/json' })); a2.download = 'data-' + (T('nama_toko') || 'toko').replace(/\W+/g, '-').toLowerCase() + '-' + new Date().toISOString().slice(0, 10) + '.json'; a2.click(); };
+    };
+    if (c) draw(c); go();
+    m.querySelector('[data-ref]').onclick = () => { Store.del('a:sys'); VIEWS.sistem(m); };
+  };
+  function pulihkan(b, done) {
+    const o = A.sheet('<form class="f"><div class="note amber">' + I('warning') + '<div>Data tabel yang dipilih akan <b>diganti</b> isi backup <b>' + esc(b.nama) + '</b>. Kondisi sekarang otomatis dibackup dulu, jadi bisa dibatalkan.</div></div>' +
+      '<div class="fld"><span>Tabel yang dipulihkan</span><div class="sys-pick">' + SYS_TABEL.map(t => '<label class="pick"><input type="checkbox" value="' + t + '"' + (['Pengguna', 'Log', 'Statistik', 'CRM_Kontak'].indexOf(t) < 0 ? ' checked' : '') + '><span>' + t + '</span></label>').join('') + '</div></div>' +
+      '<div class="fld"><label>Ketik <b>PULIHKAN</b> untuk konfirmasi</label><input name="k" autocomplete="off"></div><button class="btn btn-ink btn-block" data-go>' + I('settings_backup_restore') + 'Pulihkan Data</button></form>', { title: 'Pemulihan Data', lg: true });
+    const f = o.querySelector('form');
+    f.onsubmit = async e => { e.preventDefault(); if (f.k.value.trim().toUpperCase() !== 'PULIHKAN') return A.toast('Ketik PULIHKAN untuk konfirmasi', 'err');
+      const sheets = [...f.querySelectorAll('.sys-pick input:checked')].map(x => x.value);
+      const r = await call('sys.restore', { id: b.id, sheets }, f.querySelector('[data-go]'), { label: 'Memulihkan…' }); if (!r.success) return;
+      o.close(); A.sheet('<div class="list">' + r.data.hasil.map(x => '<div class="li"><span class="avatar-i">' + I('check') + '</span><div class="grow">' + esc(x) + '</div></div>').join('') + '</div><p class="small muted mt8">Cadangan sebelum pemulihan: ' + esc(r.data.cadangan) + '</p>', { title: 'Pemulihan selesai' });
+      await loadBoot(true); refreshPublic(); done && done(); };
+  }
 
   /* ======================= MENU KATEGORI (grid ala aplikasi) — editor ======================= */
   function editKg() {
@@ -855,7 +1047,9 @@
     harga_emas: { i: 'monitoring', d: 'Kartu harga emas hari ini (kadar pilihan)', spec: [{ k: 'harga_judul', t: 'Judul' }, { k: 'harga_sub', t: 'Keterangan halaman harga', type: 'textarea', rows: 2 }, { k: 'harga_bio_kadar', t: 'Kadar yang tampil di kartu (maks. 4)', hint: 'Pisahkan koma, mis. 24K,22K,18K,17K' }], link: 'emas', linkT: 'Atur harga emas' },
     lelang: { i: 'gavel', d: 'Kartu event lelang (tampil saat lelang dibuka)', link: 'lelang', linkT: 'Atur event lelang' },
     kategori_grid: { i: 'apps', d: 'Menu kategori bergaya aplikasi — 4 kolom × 2 baris, bisa digeser', kg: 1 },
-    galeri: { i: 'photo_library', d: 'Cuplikan foto Galeri Custom & Pre-Order', spec: [{ k: 'galeri_bio_judul', t: 'Judul bagian' }, { k: 'galeri_bio_jumlah', t: 'Jumlah foto', type: 'select', opts: ['4', '8', '12'] }], link: 'galeri', linkT: 'Kelola foto galeri' },
+    galeri: { i: 'photo_library', d: 'Cuplikan foto semua galeri (acak, efek berjalan)', spec: [{ k: 'galeri_bio_judul', t: 'Judul bagian' },
+      { k: 'galeri_bio_efek', t: 'Efek tampilan', type: 'select', opts: [['jalan', 'Berjalan (2 baris bergeser)'], ['muncul', 'Grid + efek muncul'], ['diam', 'Grid diam']], half: 1 }, { k: 'galeri_bio_jumlah', t: 'Jumlah foto', type: 'select', opts: ['4', '8', '12', '16'], half: 1 },
+      { k: 'galeri_bio_acak', t: 'Urutan foto acak setiap dibuka', type: 'switch', yaTidak: 1 }], link: 'galeri', linkT: 'Kelola foto galeri' },
     produk: { i: 'view_week', d: 'Slide produk acak + Lihat semua', spec: [{ k: 'produk_judul', t: 'Judul slide' }, { k: 'produk_jumlah', t: 'Jumlah produk', type: 'select', opts: ['4', '6', '8', '10', '12', '16', '20'] }, { k: 'label_promo', t: 'Label produk diskon' }, { k: 'teks_lihat_semua', t: 'Teks tombol "Lihat semua"' }] },
     sosmed: { i: 'public', d: 'Tautan sosial media', spec: [{ k: 'sosmed_judul', t: 'Judul bagian', hint: HIDE }, { k: 'sosmed_gaya', t: 'Gaya tampilan', type: 'select', opts: GAYA_SOS }], link: 'cabang', linkT: 'Kelola tautan sosial media' },
     cabang: { i: 'storefront', d: 'Lokasi toko & kontak WhatsApp', spec: [{ k: 'cabang_judul', t: 'Judul bagian' }, { k: 'cabang_jumlah', t: 'Jumlah lokasi di link bio', type: 'select', opts: ['1', '2', '3', '4', '6'] }, { k: 'teks_chat', t: 'Teks tombol chat', half: 1 }, { k: 'teks_maps', t: 'Teks tombol peta', half: 1 }], link: 'cabang', linkT: 'Kelola daftar lokasi' }

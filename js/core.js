@@ -70,15 +70,16 @@
     { id: 'keranjang', label: 'Pesanan', icon: 'shopping_bag', link: 'keranjang', sys: 1 },
     { id: 'harga', label: 'Harga Emas Hari Ini', icon: 'monitoring', link: '#/harga-emas', sys: 1 }, { id: 'jualemas', label: 'Jual Emas (Buyback)', icon: 'currency_exchange', link: '#/jual-emas', sys: 1 },
     { id: 'lelang', label: 'Lelang Spesial Member', icon: 'gavel', link: '#/lelang', sys: 1 }, { id: 'akun', label: 'Akun Member', icon: 'account_circle', link: '#/akun', sys: 1 },
-    { id: 'galeri', label: 'Galeri Pesanan Custom', icon: 'photo_library', link: '#/galeri/custom', sys: 1 }, { id: 'galeripo', label: 'Galeri Pre-Order', icon: 'collections', link: '#/galeri/po', sys: 1 }];
+    { id: 'galeri', label: 'Galeri Pesanan Custom', icon: 'photo_library', link: '#/galeri/custom', sys: 1 }, { id: 'galeripo', label: 'Galeri Pre-Order', icon: 'collections', link: '#/galeri/po', sys: 1 },
+    { id: 'favorit', label: 'Favorit Saya', icon: 'favorite', link: '#/favorit', sys: 1 }];
   const HDR_DEF = [{ id: 'install', tampil: true }, { id: 'cs', tampil: true }, { id: 'tema', tampil: false }];
   const FAQ_DEF = [{ q: 'Bagaimana harga perhiasan dihitung?', a: 'Harga produk emas = berat (gram) × harga jual per gram sesuai kadar + ongkos pembuatan. Harga mengikuti harga emas hari ini.' },
     { q: 'Apakah menerima emas lama, patah, atau tanpa surat?', a: 'Ya. Harga final ditentukan setelah pengecekan kadar & berat di toko. Lihat menu Jual Emas untuk estimasi.' },
     { q: 'Apa syarat sewa perhiasan pengantin?', a: 'Daftar member dengan nomor HP dan unggah foto KTP. Deposit dikembalikan setelah barang kembali dalam kondisi baik.' },
     { q: 'Pembayaran bisa lewat apa saja?', a: 'Tunai, transfer bank, dan QRIS resmi. Lihat menu Rekening & QRIS — pastikan selalu atas nama toko kami.' }];
   const NAV_DEF = [{ id: 'bio', label: 'Beranda', icon: 'home', tampil: true }, { id: 'katalog', label: 'Katalog', icon: 'diamond', tampil: true },
-    { id: 'harga', label: 'Harga', icon: 'monitoring', tampil: true }, { id: 'lelang', label: 'Lelang', icon: 'gavel', tampil: true },
-    { id: 'akun', label: 'Akun', icon: 'account_circle', tampil: true }, { id: 'jualemas', label: 'Jual Emas', icon: 'currency_exchange', tampil: false },
+    { id: 'harga', label: 'Harga', icon: 'monitoring', tampil: true }, { id: 'favorit', label: 'Favorit', icon: 'favorite', tampil: true },
+    { id: 'akun', label: 'Akun', icon: 'account_circle', tampil: true }, { id: 'lelang', label: 'Lelang', icon: 'gavel', tampil: false }, { id: 'jualemas', label: 'Jual Emas', icon: 'currency_exchange', tampil: false },
     { id: 'lokasi', label: 'Toko', icon: 'storefront', tampil: false }, { id: 'keranjang', label: 'Pesanan', icon: 'shopping_bag', tampil: false },
     { id: 'layanan', label: 'Layanan', icon: 'build_circle', tampil: false }, { id: 'bayar', label: 'Bayar', icon: 'account_balance_wallet', tampil: false },
     { id: 'menu', label: 'Lainnya', icon: 'menu', tampil: false }];
@@ -111,7 +112,7 @@
     galeri_po_judul: 'Galeri Pre-Order', galeri_po_sub: 'Model perhiasan terbaru yang belum ada di toko — bisa dipesan (PO).',
     galeri_kategori: 'Cincin, Cincin Kawin, Kalung, Liontin Nama, Gelang, Anting, Set Perhiasan, Perhiasan Adat',
     galeri_layout_hp: 'grid', galeri_layout_pc: 'masonry', galeri_layouts: 'grid,mosaik,masonry,besar,rapat', galeri_jarak: 'normal', galeri_sudut: 'bulat', galeri_label: 'YA',
-    galeri_bio_judul: 'Galeri Pesanan & Pre-Order', galeri_bio_jumlah: '8',
+    galeri_bio_judul: 'Galeri Kota Bali', galeri_bio_jumlah: '8', galeri_bio_efek: 'jalan', galeri_bio_acak: 'YA',
     teks_pesan_galeri: 'Halo {toko} {cabang}, saya tertarik dengan contoh {jenis} ini ({kategori}). Bisa dibuatkan/dipesan? Mohon info kadar, berat, harga & lama pengerjaan.\nFoto: {foto}\nLihat: {link}',
     jual_judul: 'Jual Emas dengan Harga Tertinggi', jual_sub: 'Kami membeli emas perhiasan, logam mulia, emas lama, patah, rusak, hingga tanpa surat.',
     jual_poin: 'Emas perhiasan & logam mulia\nEmas lama, patah & rusak\nEmas tanpa surat\nDitimbang & dicek kadar di depan Anda\nDibayar tunai atau transfer saat itu juga',
@@ -130,6 +131,8 @@
     let a; try { a = JSON.parse(App.T('nav_items')); } catch (e) { a = null; } if (!Array.isArray(a) || !a.length) a = NAV_DEF.map(x => Object.assign({}, x));
     const all = App.allMenus ? App.allMenus() : NAV_DEF; a = a.filter(x => x && all.some(m => m.id === x.id));
     const ids = a.map(x => x.id); all.forEach(m => { if (ids.indexOf(m.id) < 0) { const d = NAV_DEF.find(n => n.id === m.id); a.push({ id: m.id, label: d ? d.label : App.shortLabel(m), icon: d ? d.icon : m.icon, tampil: false }); } });
+    // keranjang/pesanan nonaktif → slot navigasinya diganti Favorit
+    if (App.T('keranjang_aktif') !== 'YA') { const k = a.findIndex(x => x.id === 'keranjang' && x.tampil), f = a.findIndex(x => x.id === 'favorit'); if (k > -1 && f > -1 && !a[f].tampil) { a[k] = Object.assign({}, a[f], { tampil: true, label: 'Favorit', icon: 'favorite' }); a.splice(f, 1); } }
     let on = 0; return a.map(x => { const r = Object.assign({}, x); if (r.tampil && !App.menuOk(r)) r.tampil = false; if (r.tampil && ++on > 5) r.tampil = false; return r; });
   };
   App.ICON_SET = ICON_SET;
@@ -150,6 +153,20 @@
   const SHORT = {}; NAV_DEF.forEach(n => { if (n.id !== 'bio' && n.id !== 'menu') SHORT[n.id] = n.label; });
   App.shortLabel = m => { if (!m) return ''; if (m.custom) return m.label; const n = J('nav_items', []).find(x => x && x.id === m.id); return (n && n.label) || SHORT[m.id] || m.label; };
   /* tautan menu → href + atribut */
+  /* daftar galeri (Custom, Pre-Order, Ready Stock, Perak, + galeri buatan sendiri) */
+  const GALERI_DEF = [{ id: 'custom', nama: 'Custom', judul: 'Galeri Pesanan Custom', sub: 'Contoh perhiasan custom & pesanan pelanggan kami. Pilih model, lalu tanyakan lewat WhatsApp.', icon: 'photo_library', tampil: true },
+    { id: 'po', nama: 'Pre-Order', judul: 'Galeri Pre-Order', sub: 'Model perhiasan terbaru yang belum ada di toko — bisa dipesan (PO).', icon: 'collections', tampil: true },
+    { id: 'ready', nama: 'Ready Stock', judul: 'Galeri Ready Stock', sub: 'Perhiasan siap pakai yang tersedia di toko.', icon: 'inventory_2', tampil: true },
+    { id: 'perak', nama: 'Perak', judul: 'Galeri Perak', sub: 'Koleksi perhiasan perak 925 & perak Bali.', icon: 'auto_awesome', tampil: true }];
+  App.galeriDaftar = function (semua) {
+    const st = (App.mode === 'admin' && App.admin && App.admin.settings) || (App.pub && App.pub.settings) || {};
+    let a = null; try { a = JSON.parse(st.galeri_daftar || 'null'); } catch (e) { }
+    a = Array.isArray(a) && a.length ? a : GALERI_DEF.map(x => Object.assign({}, x));
+    // judul lama (sebelum ada daftar galeri) tetap dihormati
+    a.forEach(g => { if (g.id === 'custom' && st.galeri_custom_judul && !st.galeri_daftar) { g.judul = st.galeri_custom_judul; g.sub = st.galeri_custom_sub || g.sub; } if (g.id === 'po' && st.galeri_po_judul && !st.galeri_daftar) { g.judul = st.galeri_po_judul; g.sub = st.galeri_po_sub || g.sub; } });
+    return semua ? a : a.filter(g => g.tampil !== false);
+  };
+  App.GALERI_DEF = GALERI_DEF;
   /* menu kategori ala aplikasi (bagian kategori_grid) — dipakai link bio & dasbor */
   const KG_DEF = () => {
     const K = n => 'assets/kat/' + n + '.png';
@@ -167,7 +184,7 @@
     if (/^aksi:/.test(l)) return { href: '#', attr: ' data-act="' + l.slice(5) + '"' + (l === 'aksi:menu' ? ' data-menu' : '') };
     if (/^kat:/.test(l)) return { href: '#/katalog/' + encodeURIComponent('k:' + l.slice(4)), attr: ' data-nav="katalog"' };
     if (/^cari:/.test(l)) return { href: '#/katalog/' + encodeURIComponent('q:' + l.slice(5)), attr: ' data-nav="katalog"' };
-    if (/^#\//.test(l)) { const nv = { '#/harga-emas': 'harga', '#/jual-emas': 'jualemas', '#/lelang': 'lelang', '#/akun': 'akun', '#/galeri/custom': 'galeri', '#/galeri/po': 'galeripo' }[l]; return { href: l, attr: nv ? ' data-nav="' + nv + '"' : '' }; }
+    if (/^#\//.test(l)) { const nv = { '#/harga-emas': 'harga', '#/jual-emas': 'jualemas', '#/lelang': 'lelang', '#/akun': 'akun', '#/favorit': 'favorit', '#/galeri/custom': 'galeri', '#/galeri/po': 'galeripo' }[l] || (/^#\/galeri\/[\w-]+$/.test(l) ? 'galeri-' + l.slice(9) : ''); return { href: l, attr: nv ? ' data-nav="' + nv + '"' : '' }; }
     if (/^#./.test(l)) return { href: '#/katalog/' + encodeURIComponent('q:' + l.slice(1)), attr: ' data-nav="katalog"' };
     if (/^(https?:|mailto:|tel:)/i.test(l)) return { href: l, attr: ' target="_blank" rel="noopener"' };
     if (/^wa\.me|^[\w-]+(\.[\w-]+)+/i.test(l)) return { href: 'https://' + l, attr: ' target="_blank" rel="noopener"' };

@@ -262,6 +262,35 @@ Admin cabang mengelola foto yang ia unggah sendiri.
 
 **Display & Layout** (superadmin, di halaman yang sama): pilih tampilan yang boleh dipakai pengunjung, tampilan awal HP dan desktop, jarak & sudut foto, label kategori di foto, urutan kategori, teks halaman, serta isi pesan WhatsApp.
 
+### Galeri tambahan (Ready Stock, Perak, & galeri buatan sendiri)
+Bawaan ada 4 galeri: **Custom, Pre-Order, Ready Stock, Perak**.
+- **Galeri baru**: dasbor → **Galeri Foto → Kelola galeri → Galeri baru**. Isi nama (mis. "Emas Muda"); kode halaman dibuat otomatis (`#/galeri/emas-muda`).
+- Di sana juga bisa mengubah judul, keterangan & ikon, mengurutkan, menyembunyikan, atau menghapus galeri. Galeri yang masih berisi foto tidak bisa dihapus.
+- Pasang galeri di **Menu**, **Navigasi bawah**, atau **Menu Kategori** dengan tujuan halaman `#/galeri/<kode>`.
+- Bagian galeri di beranda menampilkan foto **acak** dari semua galeri, tanpa label, dengan efek **berjalan** (2 baris bergeser), **muncul**, atau **diam**. Atur di **Tampilan → Bagian → Galeri**. Tombol **Lihat semua** dan ikon grid di kanan judul membuka halaman galeri.
+
+### Favorit ❤️
+- Pelanggan menekan ❤️ di kartu produk, detail produk, foto galeri, atau saat foto dibuka layar penuh. Ikon menjadi merah dan item tersimpan di **Favorit** (`#/favorit`).
+- Navigasi bawah menampilkan jumlah favorit. Bila keranjang/Pesanan nonaktif, slot navigasi **Pesanan** otomatis diganti **Favorit**.
+- Di halaman Favorit pelanggan bisa memfilter Produk/Foto, menghapus item, **Tanya** satu item, atau **Tanyakan semua** lewat WhatsApp (berisi nama, harga & link produk serta link foto).
+- Favorit disimpan di perangkat pelanggan (tanpa login). Bila pelanggan berganti HP atau menghapus data browser, favoritnya hilang.
+
+### Watermark foto otomatis (dasbor → **Watermark Foto**)
+- Watermark **dibakar permanen** ke gambar di browser sebelum diunggah ke Drive, jadi tetap terlihat saat foto diunduh atau dibagikan.
+- Berlaku untuk foto **produk** dan foto **galeri**. Foto yang sudah terunggah sebelumnya **tidak berubah**.
+- **Pengaturan**: status aktif, mode **Logo / Teks / Logo + Teks**, logo usaha atau logo khusus (PNG/SVG/WebP), posisi 9 titik atau **berulang** (anti-crop), ukuran 5–100%, transparansi 0–100%, rotasi −180°…180°, jarak tepi horizontal & vertikal, warna Original/Custom, efek Shadow/Glow/Outline, layer **Depan** (jelas) atau **Belakang** (menyatu dengan foto).
+- **Pratinjau langsung** berubah saat setelan digeser. Tombol **Mobile/Desktop** menunjukkan tampilannya di kartu HP dan layar lebar; foto contoh bisa diganti.
+- **Global / per brand**: tab **Global** berlaku untuk semua. Tab tiap toko (Emas Kota Bali, Emas Putri Bali) bisa memakai **pengaturan khusus brand**.
+- **Per produk**: di form produk, di atas foto, pilih **ikut pengaturan brand / tanpa watermark / khusus produk ini** (posisi & ukuran sendiri). Pilih sebelum menambahkan foto.
+- **Galeri**: saklar **Beri watermark otomatis** di panel unggah. Matikan untuk foto yang sudah punya watermark agar tidak dobel.
+
+### Backend GAS & Basis Data (dasbor superadmin → **Backend GAS & Database**)
+- **Status API**: online/gangguan, waktu respons, pemicu latar, sisa kuota email, status GoldAPI & Fonnte, dan URL `/exec`.
+- **Kapasitas Sheets**: sisa dari batas 10 juta sel, plus jumlah baris & sel per tabel.
+- **Backup**: tombol **Backup sekarang** membuat salinan utuh spreadsheet di folder Drive `Backup_Database`. Bisa juga otomatis harian/mingguan, dengan jumlah backup yang disimpan dibatasi (yang lama dibuang ke sampah Drive).
+- **Pemulihan**: pilih backup → centang tabel → ketik `PULIHKAN`. Kondisi sekarang otomatis dibackup dulu sebelum dipulihkan, jadi bisa dibatalkan.
+- **Unduh semua data (JSON)**: arsip cadangan di komputer.
+
 ### Bagikan produk dengan foto
 Tombol **Bagikan** di detail produk punya pilihan **Kirim foto + link**:
 - Di HP (Android/iPhone), foto produk dikirim sebagai gambar beserta nama, harga, keterangan singkat & link ke WhatsApp, Instagram, dll.
@@ -395,6 +424,11 @@ Catatan Blogger:
 1. Disarankan proyek Apps Script & spreadsheet **baru**: tempel kelima berkas `.gs` (termasuk **`Emas.gs` baru**), jalankan `setupAplikasi()`. Paket toko emas terpasang otomatis.
 2. Memakai spreadsheet lama: tempel kelima berkas `.gs`, jalankan `setupAplikasi()` (menambah sheet Kadar, HargaLog, Member, Sewa, LelangKlaim & kolom produk baru) lalu **`gantiKeDataEmas()`**.
 3. Deploy **Versi baru**, unggah isi ZIP ke GitHub (tetap pakai `js/config.js` lama yang berisi URL), push. Blogger: pasang `tema-tokoemas.xml`.
+
+**Toko Emas v3** (watermark otomatis, Favorit, galeri Ready Stock/Perak/baru, menu Backend & Database, kartu lelang ringkas):
+1. Tempel ulang **`Kode.gs`** dan **`Emas.gs`**, jalankan **`setupAplikasi()`** (menambah kolom `wm` di Produk), lalu Deploy → **Versi baru**.
+2. Contoh galeri Ready Stock & Perak ikut terisi bila menjalankan `gantiKeDataEmas()`. Tanpa itu, galeri tersebut tetap ada tetapi kosong sampai Anda mengunggah foto.
+3. Jalankan **`pasangTrigger()`** sekali agar backup otomatis ikut berjalan, lalu unggah ZIP baru ke GitHub.
 
 **Toko Emas v2** (menu kategori ala aplikasi, Galeri Custom & PO, reset sandi via email, suara notifikasi, bagikan foto):
 1. Tempel ulang **`Kode.gs`** dan **`Emas.gs`**, jalankan **`setupAplikasi()`** (menambah sheet **Galeri** + 2 bagian baru), lalu Deploy → **Versi baru**.

@@ -223,7 +223,7 @@
       (ON('kartu_badge') && p.kondisi ? '<span class="chip c-tl c-lbl lbl-' + lblCls(p.kondisi) + '">' + I(lblIcon(p.kondisi)) + esc(p.kondisi) + '</span>'
         : '<span class="chip c-tl">' + I(p.cabang === 'keduanya' ? 'domain' : 'location_on') + esc(cabNama(p.cabang)) + '</span>') +
       '<span class="chip c-br ' + (sold ? 'chip-no' : 'chip-ok') + '">' + (sold ? I('block') + esc(T('label_habis')) : esc(T('label_tersedia'))) + '</span>' +
-'</div>' +
+      (A.favBtn ? A.favBtn('p', p.id) : '') + '</div>' +
       '<div class="pbody"><div class="pmeta ell">' + esc((ON('kartu_badge') ? [p.merek, p.cabang !== 'keduanya' ? cabNama(p.cabang) : ''] : [p.merek, p.kondisi]).filter(Boolean).join(' • ')) + '</div><h3 class="pname">' + esc(p.nama) + '</h3>' +
       (A.emasChip ? A.emasChip(p) : '') + (p.garansi && !A.emasChip ? '<span class="chip">' + esc(p.garansi) + '</span>' : '') + '<div class="spacer"></div>' +
       '<div class="strike">' + (p.harga_coret ? rp(p.harga_coret) : '') + '</div><div class="price">' + rp(p.harga) + (A.hargaSuffix ? A.hargaSuffix(p) : '') + '</div>' +
@@ -527,7 +527,7 @@
       const kel = String(p.kelengkapan || '').split(/[,;\n]+/).map(x => x.trim()).filter(Boolean);
       const spec = [['label_merek', p.merek], ['label_ram', p.ram], ['label_memori', p.memori], ['label_kondisi', p.kondisi], ['label_garansi', p.garansi]].filter(x => x[1] && T(x[0])).map(x => [T(x[0]), x[1]]).concat([['Kategori', p.kategori]]);
       const ctaLabel = sold ? 'Tanya Ketersediaan via WhatsApp' : T('detail_tombol') + (p.cabang === 'keduanya' ? '' : ' · ' + cabNama(p.cabang));
-      el.innerHTML = '<div class="wide"><div class="row" style="justify-content:space-between"><a class="back" href="#/katalog" data-back>' + I('arrow_back') + 'Kembali ke Katalog</a><button class="icon-btn" data-share aria-label="Bagikan">' + I('share') + '</button></div>' +
+      el.innerHTML = '<div class="wide"><div class="row" style="justify-content:space-between"><a class="back" href="#/katalog" data-back>' + I('arrow_back') + 'Kembali ke Katalog</a><span class="row" style="gap:6px">' + (A.favBtn ? A.favBtn('p', p.id, 1) : '') + '<button class="icon-btn" data-share aria-label="Bagikan">' + I('share') + '</button></span></div>' +
         '<div class="det mt12"><div class="card gal"><div class="gal-track" data-gal>' + foto.map((f, i) => f ? '<img src="' + esc(img(f, 1000)) + '" alt="' + esc(p.nama) + ' foto ' + (i + 1) + '"' + (i ? ' loading="lazy"' : '') + '>' : '<div style="flex:0 0 100%;display:flex;align-items:center;justify-content:center;color:#c7c7cc">' + I('smartphone') + '</div>').join('') + '</div>' +
         '<span class="chip badge ' + (sold ? 'chip-no' : 'chip-ok') + '">' + (sold ? esc(T('tombol_habis')) : I('check_circle') + esc(T('label_tersedia'))) + '</span>' + (foto.length > 1 ? '<span class="cnt" data-cnt>1 / ' + foto.length + '</span>' : '') +
         (foto.length > 1 ? '<div class="thumbs">' + foto.map((f, i) => '<button data-th="' + i + '"' + (i ? '' : ' class="on"') + ' aria-label="Foto ' + (i + 1) + '"><img src="' + esc(img(f, 160)) + '" alt="" loading="lazy"></button>').join('') + '</div>' : '') + '</div>' +

@@ -101,6 +101,11 @@
     return (d ? '<b>' + d + '</b>h ' : '') + '<b>' + String(h).padStart(2, '0') + '</b>j <b>' + String(m).padStart(2, '0') + '</b>m <b>' + String(s).padStart(2, '0') + '</b>d';
   }
   const cd = (target, label) => '<span class="cd" data-cd="' + target + '">' + (label ? '<small>' + esc(label) + '</small>' : '') + '<span>' + sisaWaktu(target - Date.now()) + '</span></span>';
+  function kotakWaktu(ms) {
+    ms = Math.max(0, ms); const d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5), m = Math.floor(ms % 36e5 / 6e4), sd = Math.floor(ms % 6e4 / 1e3), z = n => String(n).padStart(2, '0');
+    return (d ? '<span><b>' + d + '</b><i>hari</i></span>' : '') + '<span><b>' + z(h) + '</b><i>jam</i></span><span><b>' + z(m) + '</b><i>mnt</i></span>' + (d ? '' : '<span class="dt"><b>' + z(sd) + '</b><i>dtk</i></span>');
+  }
+  setInterval(() => { document.querySelectorAll('[data-cdb]').forEach(e => { e.innerHTML = kotakWaktu(+e.dataset.cdb - Date.now()); }); }, 1000);
   setInterval(() => {
     document.querySelectorAll('[data-cd]').forEach(e => { const ms = +e.dataset.cd - Date.now(); const s = e.querySelector('span'); if (s) s.innerHTML = sisaWaktu(ms); if (ms <= 0 && !e.dataset.done) { e.dataset.done = 1; setTimeout(() => A.rerender(), 600); } });
   }, 1000);
@@ -124,8 +129,10 @@
     A.SECTIONS.lelang = () => {
       const L = lelangState(); if (!L.nyala || (!L.aktif && !L.akanDatang)) return '';
       const n = ((A.pub && A.pub.products) || []).filter(p => p.lelang).length;
-      return '<a class="lelang-card" href="#/lelang"><span class="lc-ic">' + I('gavel') + '</span><div class="grow"><span class="lbl">' + (L.aktif ? 'Sedang berlangsung' : 'Segera dibuka') + '</span><h3>' + esc(L.judul) + '</h3>' +
-        '<p>' + esc(L.sub || (n + ' produk pilihan dengan harga spesial member')) + '</p>' + (L.aktif ? (L.selesaiMs ? cd(L.selesaiMs, 'Berakhir dalam') : '') : cd(L.mulaiMs, 'Dibuka dalam')) + '</div>' + I('arrow_forward') + '</a>';
+      const tgt = L.aktif ? L.selesaiMs : L.mulaiMs;
+      return '<a class="lelang-mini' + (L.aktif ? ' live' : '') + '" href="#/lelang" aria-label="' + esc(L.judul) + '"><span class="lm-ic">' + I('gavel') + '</span>' +
+        '<span class="lm-t"><span class="lm-st">' + (L.aktif ? '<i></i>LIVE' : 'SEGERA') + '</span><b>' + esc(L.judul) + '</b></span>' +
+        (tgt ? '<span class="lm-cd" data-cdb="' + tgt + '">' + kotakWaktu(tgt - Date.now()) + '</span>' : '<span class="lm-go">' + I('arrow_forward') + '</span>') + '</a>';
     };
   }
   document.addEventListener('click', e => { const h = e.target.closest('.gold-card [data-href]'); if (h) { e.preventDefault(); e.stopPropagation(); location.hash = h.dataset.href; } }, true);
