@@ -92,7 +92,7 @@ window.ACC_DEMO = {
   "keranjang_aktif": "TIDAK",
   "kartu_badge": "YA",
   "faq_items": "[{\"q\":\"Bagaimana harga perhiasan di katalog dihitung?\",\"a\":\"Harga produk emas mengikuti harga emas hari ini: berat (gram) × harga jual per gram sesuai kadar, ditambah ongkos pembuatan (bila ada). Harga diperbarui otomatis setiap ada perubahan harga emas.\"},{\"q\":\"Apakah toko menerima emas lama, patah, atau tanpa surat?\",\"a\":\"Ya. Kami membeli emas lama, patah, rusak, maupun tanpa surat. Harga final ditentukan setelah pengecekan kadar & berat di toko. Lihat menu Jual Emas untuk estimasi.\"},{\"q\":\"Apa syarat menyewa perhiasan atau seserahan pengantin?\",\"a\":\"Wajib menjadi member (daftar cukup dengan nomor HP) dan mengunggah foto KTP. Deposit dikembalikan setelah barang kembali dalam kondisi baik.\"},{\"q\":\"Bagaimana cara ikut Lelang Jumat Berkah?\",\"a\":\"Daftar member, unggah KTP & bukti nota pembelian di toko kami, ikuti media sosial toko, lalu tunggu verifikasi admin. Saat lelang dibuka, tekan \\\"Ambil\\\" pada produk dan tunjukkan kode lelang di toko.\"},{\"q\":\"Apakah bisa pesan perhiasan custom?\",\"a\":\"Bisa. Kirim foto model/desain yang diinginkan lewat menu Layanan → Custom Perhiasan. Admin akan memberi estimasi berat, kadar, harga, dan waktu pengerjaan.\"}]",
-  "menu_items": "[{\"id\":\"harga\",\"label\":\"Harga Emas Hari Ini\",\"sub\":\"Harga jual & buyback per kadar — update otomatis\",\"icon\":\"monitoring\",\"link\":\"#/harga-emas\",\"tampil\":true,\"custom\":1},{\"id\":\"katalog\",\"label\":\"Katalog Perhiasan\",\"sub\":\"Cincin, kalung, gelang, anting & logam mulia\",\"icon\":\"diamond\",\"link\":\"katalog\",\"tampil\":true},{\"id\":\"jualemas\",\"label\":\"Jual Emas (Buyback)\",\"sub\":\"Terima emas lama, patah, rusak & tanpa surat\",\"icon\":\"currency_exchange\",\"link\":\"#/jual-emas\",\"tampil\":true,\"custom\":1},{\"id\":\"lelang\",\"label\":\"Lelang Spesial Member\",\"sub\":\"Harga spesial saat event — kuota terbatas\",\"icon\":\"gavel\",\"link\":\"#/lelang\",\"tampil\":true,\"custom\":1},{\"id\":\"msewa\",\"label\":\"Sewa Perhiasan & Seserahan\",\"sub\":\"Set pengantin, mahkota, kotak seserahan\",\"icon\":\"favorite\",\"link\":\"kat:Sewa Pengantin\",\"tampil\":true,\"custom\":1},{\"id\":\"layanan\",\"label\":\"Service, Patri, Cuci & Custom\",\"sub\":\"Perawatan & pesanan perhiasan emas/perak\",\"icon\":\"build_circle\",\"link\":\"layanan\",\"tampil\":true},{\"id\":\"akun\",\"label\":\"Akun Member\",\"sub\":\"Daftar dengan nomor HP • unggah KTP\",\"icon\":\"account_circle\",\"link\":\"#/akun\",\"tampil\":true,\"custom\":1},{\"id\":\"bayar\",\"label\":\"Rekening & QRIS Resmi\",\"sub\":\"Bayar aman hanya ke rekening resmi toko\",\"icon\":\"account_balance_wallet\",\"link\":\"bayar\",\"tampil\":true},{\"id\":\"lokasi\",\"label\":\"Lokasi Toko\",\"sub\":\"Emas Kota Bali & Emas Putri Bali\",\"icon\":\"storefront\",\"link\":\"lokasi\",\"tampil\":true}]",
+  "menu_items": "[{\"id\":\"harga\",\"label\":\"Harga Emas Hari Ini\",\"sub\":\"Harga jual & buyback per kadar — update otomatis\",\"icon\":\"monitoring\",\"link\":\"#/harga-emas\",\"tampil\":true,\"custom\":1},{\"id\":\"katalog\",\"label\":\"Katalog Perhiasan\",\"sub\":\"Cincin, kalung, gelang, anting & logam mulia\",\"icon\":\"diamond\",\"link\":\"katalog\",\"tampil\":true},{\"id\":\"jualemas\",\"label\":\"Jual Emas (Buyback)\",\"sub\":\"Terima emas lama, patah, rusak & tanpa surat\",\"icon\":\"currency_exchange\",\"link\":\"#/jual-emas\",\"tampil\":true,\"custom\":1},{\"id\":\"lelang\",\"label\":\"Lelang Spesial Member\",\"sub\":\"Harga spesial saat event — kuota terbatas\",\"icon\":\"gavel\",\"link\":\"#/lelang\",\"tampil\":true,\"custom\":1},{\"id\":\"msewa\",\"label\":\"Sewa Perhiasan & Seserahan\",\"sub\":\"Set pengantin, mahkota, kotak seserahan\",\"icon\":\"favorite\",\"link\":\"kat:Sewa Pengantin\",\"tampil\":true,\"custom\":1},{\"id\":\"layanan\",\"label\":\"Service, Patri, Cuci & Custom\",\"sub\":\"Perawatan & pesanan perhiasan emas/perak\",\"icon\":\"build_circle\",\"link\":\"layanan\",\"tampil\":true},{\"id\":\"galeri\",\"label\":\"Galeri Pesanan Custom\",\"sub\":\"Contoh model custom & pesanan pelanggan\",\"icon\":\"photo_library\",\"link\":\"#/galeri/custom\",\"tampil\":true,\"custom\":1},{\"id\":\"galeripo\",\"label\":\"Galeri Pre-Order (PO)\",\"sub\":\"Model baru yang bisa dipesan\",\"icon\":\"collections\",\"link\":\"#/galeri/po\",\"tampil\":true,\"custom\":1},{\"id\":\"akun\",\"label\":\"Akun Member\",\"sub\":\"Daftar dengan nomor HP • unggah KTP\",\"icon\":\"account_circle\",\"link\":\"#/akun\",\"tampil\":true,\"custom\":1},{\"id\":\"bayar\",\"label\":\"Rekening & QRIS Resmi\",\"sub\":\"Bayar aman hanya ke rekening resmi toko\",\"icon\":\"account_balance_wallet\",\"link\":\"bayar\",\"tampil\":true},{\"id\":\"lokasi\",\"label\":\"Lokasi Toko\",\"sub\":\"Emas Kota Bali & Emas Putri Bali\",\"icon\":\"storefront\",\"link\":\"lokasi\",\"tampil\":true}]",
   "nav_items": "[{\"id\":\"bio\",\"label\":\"Beranda\",\"icon\":\"home\",\"tampil\":true},{\"id\":\"katalog\",\"label\":\"Katalog\",\"icon\":\"diamond\",\"tampil\":true},{\"id\":\"harga\",\"label\":\"Harga\",\"icon\":\"monitoring\",\"tampil\":true},{\"id\":\"lelang\",\"label\":\"Lelang\",\"icon\":\"gavel\",\"tampil\":true},{\"id\":\"akun\",\"label\":\"Akun\",\"icon\":\"account_circle\",\"tampil\":true},{\"id\":\"jualemas\",\"label\":\"Jual Emas\",\"icon\":\"currency_exchange\",\"tampil\":false},{\"id\":\"lokasi\",\"label\":\"Toko\",\"icon\":\"storefront\",\"tampil\":false},{\"id\":\"menu\",\"label\":\"Lainnya\",\"icon\":\"menu\",\"tampil\":false}]",
   "header_items": "[{\"id\":\"install\",\"tampil\":true},{\"id\":\"cs\",\"tampil\":true}]",
   "emas_sumber": "manual",
@@ -103,9 +103,10 @@ window.ACC_DEMO = {
   "lelang_judul": "Lelang Jumat Berkah",
   "lelang_sub": "Harga spesial khusus member terverifikasi — kuota terbatas!",
   "lelang_mulai": "",
-  "lelang_selesai": "2026-11-18T13:47:35.207Z",
+  "lelang_selesai": "2026-11-19T13:25:28.499Z",
   "lelang_syarat": "Terdaftar sebagai member (login nomor HP)\nMengunggah foto KTP yang masih berlaku\nPernah belanja di toko (unggah foto nota pembelian)\nMengikuti Instagram & TikTok toko\nSatu member maksimal 1 produk per event\nKode lelang ditukar di toko maksimal 3 hari setelah event berakhir",
   "lelang_maks": "1",
+  "lelang_batas_jam": "72",
   "lelang_wajib_ktp": "YA",
   "lelang_wajib_nota": "YA",
   "lelang_wajib_sosmed": "YA",
@@ -115,7 +116,25 @@ window.ACC_DEMO = {
   "jual_poin": "Emas perhiasan & logam mulia\nEmas lama, patah & rusak\nEmas tanpa surat\nDitimbang & dicek kadar di depan Anda\nDibayar tunai atau transfer saat itu juga",
   "jual_catatan": "Harga di atas adalah acuan awal per gram. Nilai akhir ditentukan setelah pengecekan kadar, berat & kondisi di toko.",
   "harga_judul": "Harga Emas Hari Ini",
-  "harga_sub": "Harga jual & buyback per gram di Emas Kota Bali"
+  "harga_sub": "Harga jual & buyback per gram di Emas Kota Bali",
+  "nama_pendek": "Emas Kota Bali",
+  "kg_items": "[{\"id\":\"k1\",\"label\":\"Cincin\",\"img\":\"assets/kat/cincin.png\",\"icon\":\"diamond\",\"link\":\"kat:Cincin\",\"tampil\":true},{\"id\":\"k2\",\"label\":\"Kalung\",\"img\":\"assets/kat/kalung.png\",\"icon\":\"diamond\",\"link\":\"kat:Kalung\",\"tampil\":true},{\"id\":\"k3\",\"label\":\"Gelang\",\"img\":\"assets/kat/gelang.png\",\"icon\":\"diamond\",\"link\":\"kat:Gelang\",\"tampil\":true},{\"id\":\"k4\",\"label\":\"Anting\",\"img\":\"assets/kat/anting.png\",\"icon\":\"diamond\",\"link\":\"kat:Anting & Liontin\",\"tampil\":true},{\"id\":\"k5\",\"label\":\"Logam Mulia\",\"img\":\"assets/kat/lm.png\",\"icon\":\"savings\",\"link\":\"kat:Logam Mulia\",\"tampil\":true},{\"id\":\"k6\",\"label\":\"Harga Emas\",\"img\":\"assets/kat/harga.png\",\"icon\":\"monitoring\",\"link\":\"#/harga-emas\",\"tampil\":true},{\"id\":\"k7\",\"label\":\"Jual Emas\",\"img\":\"assets/kat/jual.png\",\"icon\":\"currency_exchange\",\"link\":\"#/jual-emas\",\"tampil\":true},{\"id\":\"k8\",\"label\":\"Custom\",\"img\":\"assets/kat/custom.png\",\"icon\":\"photo_library\",\"link\":\"#/galeri/custom\",\"tampil\":true},{\"id\":\"k9\",\"label\":\"Pre-Order\",\"img\":\"assets/kat/po.png\",\"icon\":\"collections\",\"link\":\"#/galeri/po\",\"tampil\":true},{\"id\":\"k10\",\"label\":\"Lelang\",\"img\":\"assets/kat/lelang.png\",\"icon\":\"gavel\",\"link\":\"#/lelang\",\"tampil\":true},{\"id\":\"k11\",\"label\":\"Sewa\",\"img\":\"assets/kat/sewa.png\",\"icon\":\"favorite\",\"link\":\"kat:Sewa Pengantin\",\"tampil\":true},{\"id\":\"k12\",\"label\":\"Layanan\",\"img\":\"assets/kat/layanan.png\",\"icon\":\"build_circle\",\"link\":\"layanan\",\"tampil\":true}]",
+  "kg_judul": "",
+  "kg_gaya": "kartu",
+  "galeri_custom_judul": "Galeri Pesanan Custom",
+  "galeri_custom_sub": "Contoh perhiasan custom & pesanan pelanggan kami. Pilih model, lalu tanyakan langsung lewat WhatsApp.",
+  "galeri_po_judul": "Galeri Pre-Order",
+  "galeri_po_sub": "Model perhiasan terbaru yang belum ada di toko — bisa dipesan (PO) sesuai kadar & ukuran Anda.",
+  "galeri_kategori": "Cincin, Cincin Kawin, Kalung, Liontin Nama, Gelang, Anting, Set Perhiasan, Perhiasan Adat",
+  "galeri_layout_hp": "grid",
+  "galeri_layout_pc": "masonry",
+  "galeri_layouts": "grid,mosaik,masonry,besar,rapat",
+  "galeri_jarak": "normal",
+  "galeri_sudut": "bulat",
+  "galeri_label": "YA",
+  "galeri_bio_judul": "Galeri Pesanan & Pre-Order",
+  "galeri_bio_jumlah": "8",
+  "teks_pesan_galeri": "Halo {toko} {cabang}, saya tertarik dengan contoh {jenis} ini ({kategori}). Bisa dibuatkan/dipesan? Mohon info kadar, berat, harga & lama pengerjaan.\nFoto: {foto}\nLihat: {link}"
  },
  "sections": [
   {
@@ -131,51 +150,63 @@ window.ACC_DEMO = {
    "tampil": true
   },
   {
+   "id": "kategori_grid",
+   "nama_bagian": "Menu Kategori (ala Aplikasi)",
+   "urutan": 3,
+   "tampil": true
+  },
+  {
    "id": "harga_emas",
    "nama_bagian": "Harga Emas Hari Ini",
-   "urutan": 3,
+   "urutan": 4,
    "tampil": true
   },
   {
    "id": "lelang",
    "nama_bagian": "Banner Lelang / Event",
-   "urutan": 4,
+   "urutan": 5,
    "tampil": true
   },
   {
    "id": "promo",
    "nama_bagian": "Kartu Promo / Pengumuman",
-   "urutan": 5,
+   "urutan": 6,
    "tampil": true
   },
   {
    "id": "menu",
    "nama_bagian": "Tombol Menu Link Bio",
-   "urutan": 6,
+   "urutan": 7,
    "tampil": true
   },
   {
    "id": "produk",
    "nama_bagian": "Slide Produk Pilihan",
-   "urutan": 7,
+   "urutan": 8,
+   "tampil": true
+  },
+  {
+   "id": "galeri",
+   "nama_bagian": "Galeri Pesanan & PO",
+   "urutan": 9,
    "tampil": true
   },
   {
    "id": "sosmed",
    "nama_bagian": "Sosial Media Resmi",
-   "urutan": 8,
+   "urutan": 10,
    "tampil": true
   },
   {
    "id": "cabang",
    "nama_bagian": "Kartu Alamat & Maps Cabang",
-   "urutan": 9,
+   "urutan": 11,
    "tampil": true
   },
   {
    "id": "faq",
    "nama_bagian": "FAQ (Tanya Jawab)",
-   "urutan": 10,
+   "urutan": 12,
    "tampil": true
   }
  ],
@@ -375,7 +406,7 @@ window.ACC_DEMO = {
    "status": "Tersedia",
    "cabang": "keduanya",
    "deskripsi": "Cincin polos model klasik yang cocok dipakai sehari-hari maupun sebagai cincin tunangan. Permukaan dipoles mengilap, nyaman di jari.",
-   "dibuat": "2026-11-12T13:47:35.212Z",
+   "dibuat": "2026-11-13T13:25:28.503Z",
    "jenis_logam": "emas",
    "kadar": "18K",
    "berat": 2,
@@ -408,7 +439,7 @@ window.ACC_DEMO = {
    "status": "Tersedia",
    "cabang": "keduanya",
    "deskripsi": "Sepasang cincin kawin dengan ukiran halus. Gratis ukir nama & tanggal pernikahan, pengerjaan 3–5 hari.",
-   "dibuat": "2026-11-12T13:47:35.212Z",
+   "dibuat": "2026-11-13T13:25:28.503Z",
    "jenis_logam": "emas",
    "kadar": "17K",
    "berat": 4.5,
@@ -442,7 +473,7 @@ window.ACC_DEMO = {
    "status": "Tersedia",
    "cabang": "kota",
    "deskripsi": "Cincin solitaire dengan mata zirkon berkilau, desain elegan untuk lamaran & hadiah.",
-   "dibuat": "2026-11-12T13:47:35.212Z",
+   "dibuat": "2026-11-13T13:25:28.503Z",
    "jenis_logam": "emas",
    "kadar": "18K",
    "berat": 2.3,
@@ -475,7 +506,7 @@ window.ACC_DEMO = {
    "status": "Tersedia",
    "cabang": "keduanya",
    "deskripsi": "Rantai model Italy yang kuat dan lentur, kaitan pengaman ganda. Bisa dipadukan dengan liontin apa saja.",
-   "dibuat": "2026-11-12T13:47:35.212Z",
+   "dibuat": "2026-11-13T13:25:28.503Z",
    "jenis_logam": "emas",
    "kadar": "17K",
    "berat": 5,
@@ -509,7 +540,7 @@ window.ACC_DEMO = {
    "status": "Tersedia",
    "cabang": "putri",
    "deskripsi": "Kalung dengan liontin hati — hadiah manis untuk orang tersayang.",
-   "dibuat": "2026-11-12T13:47:35.212Z",
+   "dibuat": "2026-11-13T13:25:28.503Z",
    "jenis_logam": "emas",
    "kadar": "18K",
    "berat": 3.2,
@@ -542,7 +573,7 @@ window.ACC_DEMO = {
    "status": "Tersedia",
    "cabang": "keduanya",
    "deskripsi": "Gelang keroncong kadar tinggi, cocok untuk investasi sekaligus perhiasan.",
-   "dibuat": "2026-11-12T13:47:35.212Z",
+   "dibuat": "2026-11-13T13:25:28.503Z",
    "jenis_logam": "emas",
    "kadar": "22K",
    "berat": 15,
@@ -575,7 +606,7 @@ window.ACC_DEMO = {
    "status": "Tersedia",
    "cabang": "keduanya",
    "deskripsi": "Gelang rantai dengan ukiran khas Bali, dikerjakan pengrajin lokal.",
-   "dibuat": "2026-11-12T13:47:35.212Z",
+   "dibuat": "2026-11-13T13:25:28.503Z",
    "jenis_logam": "emas",
    "kadar": "20K",
    "berat": 8,
@@ -608,7 +639,7 @@ window.ACC_DEMO = {
    "status": "Tersedia",
    "cabang": "keduanya",
    "deskripsi": "Anting tusuk model bunga jepun (kamboja) — ikon Bali yang manis.",
-   "dibuat": "2026-11-12T13:47:35.212Z",
+   "dibuat": "2026-11-13T13:25:28.503Z",
    "jenis_logam": "emas",
    "kadar": "18K",
    "berat": 1.2,
@@ -641,7 +672,7 @@ window.ACC_DEMO = {
    "status": "Tersedia",
    "cabang": "keduanya",
    "deskripsi": "Liontin kaligrafi dengan detail tajam, tanpa rantai.",
-   "dibuat": "2026-11-12T13:47:35.212Z",
+   "dibuat": "2026-11-13T13:25:28.503Z",
    "jenis_logam": "emas",
    "kadar": "22K",
    "berat": 2,
@@ -674,7 +705,7 @@ window.ACC_DEMO = {
    "status": "Tersedia",
    "cabang": "putri",
    "deskripsi": "Gelang rantai mungil dengan butir mutiara imitasi, aman & ringan untuk anak.",
-   "dibuat": "2026-11-12T13:47:35.212Z",
+   "dibuat": "2026-11-13T13:25:28.503Z",
    "jenis_logam": "emas",
    "kadar": "16K",
    "berat": 2.5,
@@ -707,7 +738,7 @@ window.ACC_DEMO = {
    "status": "Tersedia",
    "cabang": "keduanya",
    "deskripsi": "Emas batangan Antam 99,99% bersertifikat, kemasan segel resmi.",
-   "dibuat": "2026-11-12T13:47:35.212Z",
+   "dibuat": "2026-11-13T13:25:28.503Z",
    "jenis_logam": "emas",
    "kadar": "ANTAM",
    "berat": 5,
@@ -740,7 +771,7 @@ window.ACC_DEMO = {
    "status": "Tersedia",
    "cabang": "keduanya",
    "deskripsi": "Logam mulia 1 gram — pilihan tepat untuk mulai menabung emas.",
-   "dibuat": "2026-11-12T13:47:35.212Z",
+   "dibuat": "2026-11-13T13:25:28.503Z",
    "jenis_logam": "emas",
    "kadar": "ANTAM",
    "berat": 1,
@@ -774,7 +805,7 @@ window.ACC_DEMO = {
    "status": "Tersedia",
    "cabang": "keduanya",
    "deskripsi": "Cincin perak 925 dengan ukiran tangan pengrajin Celuk, Gianyar.",
-   "dibuat": "2026-11-12T13:47:35.212Z",
+   "dibuat": "2026-11-13T13:25:28.503Z",
    "jenis_logam": "perak",
    "kadar": "P925",
    "berat": 5,
@@ -807,7 +838,7 @@ window.ACC_DEMO = {
    "status": "Tersedia",
    "cabang": "keduanya",
    "deskripsi": "Kalung perak 925 dengan liontin mutiara air tawar asli.",
-   "dibuat": "2026-11-12T13:47:35.212Z",
+   "dibuat": "2026-11-13T13:25:28.503Z",
    "jenis_logam": "perak",
    "kadar": "P925",
    "berat": 8,
@@ -840,7 +871,7 @@ window.ACC_DEMO = {
    "status": "Tersedia",
    "cabang": "putri",
    "deskripsi": "Gelang bangle perak 925 motif naga, handmade pengrajin Bali.",
-   "dibuat": "2026-11-12T13:47:35.212Z",
+   "dibuat": "2026-11-13T13:25:28.503Z",
    "jenis_logam": "perak",
    "kadar": "P925",
    "berat": 20,
@@ -874,7 +905,7 @@ window.ACC_DEMO = {
    "status": "Tersedia",
    "cabang": "keduanya",
    "deskripsi": "Kotak perhiasan beludru dengan bantalan cincin & slot kalung. Cocok untuk hadiah & seserahan.",
-   "dibuat": "2026-11-12T13:47:35.212Z",
+   "dibuat": "2026-11-13T13:25:28.503Z",
    "jenis_logam": "non",
    "kadar": "",
    "berat": 0,
@@ -905,7 +936,7 @@ window.ACC_DEMO = {
    "status": "Tersedia",
    "cabang": "keduanya",
    "deskripsi": "Gelang biji kokka alami, ringan & elastis.",
-   "dibuat": "2026-11-12T13:47:35.212Z",
+   "dibuat": "2026-11-13T13:25:28.503Z",
    "jenis_logam": "non",
    "kadar": "",
    "berat": 0,
@@ -936,7 +967,7 @@ window.ACC_DEMO = {
    "status": "Tersedia",
    "cabang": "keduanya",
    "deskripsi": "Cincin batu akik bacan doko dengan ikatan perak, sudah dipoles kristal.",
-   "dibuat": "2026-11-12T13:47:35.212Z",
+   "dibuat": "2026-11-13T13:25:28.503Z",
    "jenis_logam": "non",
    "kadar": "",
    "berat": 0,
@@ -967,7 +998,7 @@ window.ACC_DEMO = {
    "status": "Tersedia",
    "cabang": "keduanya",
    "deskripsi": "Untaian mutiara air tawar Lombok dengan kilau alami.",
-   "dibuat": "2026-11-12T13:47:35.212Z",
+   "dibuat": "2026-11-13T13:25:28.503Z",
    "jenis_logam": "non",
    "kadar": "",
    "berat": 0,
@@ -998,7 +1029,7 @@ window.ACC_DEMO = {
    "status": "Tersedia",
    "cabang": "keduanya",
    "deskripsi": "Set kotak seserahan akrilik mewah untuk lamaran & pernikahan. Sewa 3 hari, sudah termasuk hiasan.",
-   "dibuat": "2026-11-12T13:47:35.212Z",
+   "dibuat": "2026-11-13T13:25:28.503Z",
    "jenis_logam": "non",
    "kadar": "",
    "berat": 0,
@@ -1029,7 +1060,7 @@ window.ACC_DEMO = {
    "status": "Tersedia",
    "cabang": "kota",
    "deskripsi": "Mahkota pengantin adat Bali (payas agung) berlapis emas untuk prosesi pernikahan.",
-   "dibuat": "2026-11-12T13:47:35.212Z",
+   "dibuat": "2026-11-13T13:25:28.503Z",
    "jenis_logam": "non",
    "kadar": "",
    "berat": 0,
@@ -1060,7 +1091,7 @@ window.ACC_DEMO = {
    "status": "Tersedia",
    "cabang": "keduanya",
    "deskripsi": "Set perhiasan pengantin lapis emas yang megah untuk resepsi & foto pre-wedding.",
-   "dibuat": "2026-11-12T13:47:35.212Z",
+   "dibuat": "2026-11-13T13:25:28.503Z",
    "jenis_logam": "non",
    "kadar": "",
    "berat": 0,
@@ -1091,7 +1122,7 @@ window.ACC_DEMO = {
    "status": "Tersedia",
    "cabang": "putri",
    "deskripsi": "Kotak mahar & nampan akrilik untuk menampilkan mahar dengan anggun.",
-   "dibuat": "2026-11-12T13:47:35.212Z",
+   "dibuat": "2026-11-13T13:25:28.503Z",
    "jenis_logam": "non",
    "kadar": "",
    "berat": 0,
@@ -1112,7 +1143,7 @@ window.ACC_DEMO = {
   "spot_emas": 2350000,
   "spot_perak": 28000,
   "sebelum": 2347700,
-  "update": "2026-11-12T13:47:35.222Z",
+  "update": "2026-11-13T13:25:28.517Z",
   "galat": "",
   "kadar": [
    {
@@ -1258,43 +1289,43 @@ window.ACC_DEMO = {
   ],
   "riwayat": [
    {
-    "waktu": "2026-11-02T13:47:35.222Z",
+    "waktu": "2026-11-03T13:25:28.517Z",
     "spot_emas": 2300700
    },
    {
-    "waktu": "2026-11-03T13:47:35.222Z",
+    "waktu": "2026-11-04T13:25:28.517Z",
     "spot_emas": 2312400
    },
    {
-    "waktu": "2026-11-04T13:47:35.222Z",
+    "waktu": "2026-11-05T13:25:28.517Z",
     "spot_emas": 2307700
    },
    {
-    "waktu": "2026-11-05T13:47:35.222Z",
+    "waktu": "2026-11-06T13:25:28.517Z",
     "spot_emas": 2324200
    },
    {
-    "waktu": "2026-11-06T13:47:35.222Z",
+    "waktu": "2026-11-07T13:25:28.517Z",
     "spot_emas": 2335900
    },
    {
-    "waktu": "2026-11-07T13:47:35.222Z",
+    "waktu": "2026-11-08T13:25:28.517Z",
     "spot_emas": 2328900
    },
    {
-    "waktu": "2026-11-08T13:47:35.222Z",
+    "waktu": "2026-11-09T13:25:28.517Z",
     "spot_emas": 2343000
    },
    {
-    "waktu": "2026-11-09T13:47:35.222Z",
+    "waktu": "2026-11-10T13:25:28.517Z",
     "spot_emas": 2354700
    },
    {
-    "waktu": "2026-11-10T13:47:35.222Z",
+    "waktu": "2026-11-11T13:25:28.517Z",
     "spot_emas": 2347700
    },
    {
-    "waktu": "2026-11-11T13:47:35.222Z",
+    "waktu": "2026-11-12T13:25:28.517Z",
     "spot_emas": 2350000
    }
   ]
@@ -1320,5 +1351,143 @@ window.ACC_DEMO = {
   "wajib_nota": true,
   "wajib_sosmed": true,
   "wajib_verif": true
- }
+ },
+ "galeri": [
+  {
+   "id": "GLR-CONTOH01",
+   "jenis": "custom",
+   "kategori": "Liontin Nama",
+   "tag": "nama, inisial",
+   "foto": "assets/contoh/kalung-nama.jpg",
+   "cabang": "semua"
+  },
+  {
+   "id": "GLR-CONTOH02",
+   "jenis": "custom",
+   "kategori": "Cincin",
+   "tag": "inisial, ukir",
+   "foto": "assets/contoh/cincin-inisial.jpg",
+   "cabang": "semua"
+  },
+  {
+   "id": "GLR-CONTOH03",
+   "jenis": "custom",
+   "kategori": "Gelang",
+   "tag": "nama",
+   "foto": "assets/contoh/gelang-nama.jpg",
+   "cabang": "semua"
+  },
+  {
+   "id": "GLR-CONTOH04",
+   "jenis": "custom",
+   "kategori": "Cincin Kawin",
+   "tag": "couple, nikah",
+   "foto": "assets/contoh/cincin-couple.jpg",
+   "cabang": "semua"
+  },
+  {
+   "id": "GLR-CONTOH05",
+   "jenis": "custom",
+   "kategori": "Liontin Nama",
+   "tag": "kaligrafi",
+   "foto": "assets/contoh/liontin-kaligrafi.jpg",
+   "cabang": "semua"
+  },
+  {
+   "id": "GLR-CONTOH06",
+   "jenis": "custom",
+   "kategori": "Cincin",
+   "tag": "polos",
+   "foto": "assets/contoh/cincin-polos.jpg",
+   "cabang": "semua"
+  },
+  {
+   "id": "GLR-CONTOH07",
+   "jenis": "custom",
+   "kategori": "Set Perhiasan",
+   "tag": "pengantin",
+   "foto": "assets/contoh/set-pengantin.jpg",
+   "cabang": "semua"
+  },
+  {
+   "id": "GLR-CONTOH08",
+   "jenis": "custom",
+   "kategori": "Anting",
+   "tag": "bunga",
+   "foto": "assets/contoh/anting-bunga.jpg",
+   "cabang": "semua"
+  },
+  {
+   "id": "GLR-CONTOH09",
+   "jenis": "custom",
+   "kategori": "Gelang",
+   "tag": "motif bali",
+   "foto": "assets/contoh/gelang-bali.jpg",
+   "cabang": "semua"
+  },
+  {
+   "id": "GLR-CONTOH10",
+   "jenis": "po",
+   "kategori": "Kalung",
+   "tag": "italy",
+   "foto": "assets/contoh/kalung-italy.jpg",
+   "cabang": "semua"
+  },
+  {
+   "id": "GLR-CONTOH11",
+   "jenis": "po",
+   "kategori": "Gelang",
+   "tag": "keroncong",
+   "foto": "assets/contoh/gelang-keroncong.jpg",
+   "cabang": "semua"
+  },
+  {
+   "id": "GLR-CONTOH12",
+   "jenis": "po",
+   "kategori": "Cincin",
+   "tag": "zirkon, solitaire",
+   "foto": "assets/contoh/cincin-zirkon.jpg",
+   "cabang": "semua"
+  },
+  {
+   "id": "GLR-CONTOH13",
+   "jenis": "po",
+   "kategori": "Kalung",
+   "tag": "mutiara",
+   "foto": "assets/contoh/kalung-mutiara.jpg",
+   "cabang": "semua"
+  },
+  {
+   "id": "GLR-CONTOH14",
+   "jenis": "po",
+   "kategori": "Perhiasan Adat",
+   "tag": "payas, bali",
+   "foto": "assets/contoh/mahkota-bali.jpg",
+   "cabang": "semua"
+  },
+  {
+   "id": "GLR-CONTOH15",
+   "jenis": "po",
+   "kategori": "Kalung",
+   "tag": "liontin hati",
+   "foto": "assets/contoh/kalung-hati.jpg",
+   "cabang": "semua"
+  },
+  {
+   "id": "GLR-CONTOH16",
+   "jenis": "po",
+   "kategori": "Cincin",
+   "tag": "batu",
+   "foto": "assets/contoh/cincin-akik.jpg",
+   "cabang": "semua"
+  },
+  {
+   "id": "GLR-CONTOH17",
+   "jenis": "po",
+   "kategori": "Gelang",
+   "tag": "perak, naga",
+   "foto": "assets/contoh/gelang-perak.jpg",
+   "cabang": "semua"
+  }
+ ]
 };

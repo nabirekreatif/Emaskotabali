@@ -7,7 +7,9 @@
   'use strict';
   const CFG = window.ACC_CONFIG || {};
   const GAS_URL = String(CFG.GAS_URL || '').trim();
-  const LS = 'acc:v1:';
+  const LS = 'emas:v1:';
+  /* bersihkan cache aplikasi lain/versi lama di domain yang sama (mis. Acc Cell / Bio Link kuliner) agar logo & data tidak tertukar */
+  try { Object.keys(localStorage).forEach(k => { if (/^(acc|biolink|kuliner):v\d+:/.test(k)) localStorage.removeItem(k); }); } catch (e) { }
   const App = window.App = { mode: window.ACC_MODE === 'admin' ? 'admin' : 'public', base: window.ACC_BASE != null ? String(window.ACC_BASE) : (window.ACC_MODE === 'admin' ? '../' : ''), cfg: CFG, gas: GAS_URL, demo: !GAS_URL, pub: null, admin: null, pages: {}, cur: '', dirty: {} };
 
   /* ---------------- util ---------------- */
@@ -67,7 +69,8 @@
     { id: 'tema', label: 'Mode gelap', icon: 'dark_mode', link: 'aksi:tema', sys: 1 }, { id: 'share', label: 'Bagikan', icon: 'share', link: 'aksi:share', sys: 1 },
     { id: 'keranjang', label: 'Pesanan', icon: 'shopping_bag', link: 'keranjang', sys: 1 },
     { id: 'harga', label: 'Harga Emas Hari Ini', icon: 'monitoring', link: '#/harga-emas', sys: 1 }, { id: 'jualemas', label: 'Jual Emas (Buyback)', icon: 'currency_exchange', link: '#/jual-emas', sys: 1 },
-    { id: 'lelang', label: 'Lelang Spesial Member', icon: 'gavel', link: '#/lelang', sys: 1 }, { id: 'akun', label: 'Akun Member', icon: 'account_circle', link: '#/akun', sys: 1 }];
+    { id: 'lelang', label: 'Lelang Spesial Member', icon: 'gavel', link: '#/lelang', sys: 1 }, { id: 'akun', label: 'Akun Member', icon: 'account_circle', link: '#/akun', sys: 1 },
+    { id: 'galeri', label: 'Galeri Pesanan Custom', icon: 'photo_library', link: '#/galeri/custom', sys: 1 }, { id: 'galeripo', label: 'Galeri Pre-Order', icon: 'collections', link: '#/galeri/po', sys: 1 }];
   const HDR_DEF = [{ id: 'install', tampil: true }, { id: 'cs', tampil: true }, { id: 'tema', tampil: false }];
   const FAQ_DEF = [{ q: 'Bagaimana harga perhiasan dihitung?', a: 'Harga produk emas = berat (gram) × harga jual per gram sesuai kadar + ongkos pembuatan. Harga mengikuti harga emas hari ini.' },
     { q: 'Apakah menerima emas lama, patah, atau tanpa surat?', a: 'Ya. Harga final ditentukan setelah pengecekan kadar & berat di toko. Lihat menu Jual Emas untuk estimasi.' },
@@ -103,6 +106,13 @@
     keranjang_aktif: 'TIDAK', kartu_badge: 'YA', tombol_tambah: 'Tambah', keranjang_judul: 'Pesanan Saya', keranjang_jenis: 'Makan di tempat, Bawa pulang, Diantar',
     keranjang_catatan: 'Ongkir pesan antar dihitung admin sesuai jarak. Pembayaran dikonfirmasi lewat WhatsApp.',
     harga_judul: 'Harga Emas Hari Ini', harga_sub: 'Harga jual & buyback per gram', harga_bio_kadar: '24K, 22K, 18K, 17K',
+    kg_judul: '', kg_gaya: 'kartu',
+    galeri_custom_judul: 'Galeri Pesanan Custom', galeri_custom_sub: 'Contoh perhiasan custom & pesanan pelanggan kami. Pilih model, lalu tanyakan lewat WhatsApp.',
+    galeri_po_judul: 'Galeri Pre-Order', galeri_po_sub: 'Model perhiasan terbaru yang belum ada di toko — bisa dipesan (PO).',
+    galeri_kategori: 'Cincin, Cincin Kawin, Kalung, Liontin Nama, Gelang, Anting, Set Perhiasan, Perhiasan Adat',
+    galeri_layout_hp: 'grid', galeri_layout_pc: 'masonry', galeri_layouts: 'grid,mosaik,masonry,besar,rapat', galeri_jarak: 'normal', galeri_sudut: 'bulat', galeri_label: 'YA',
+    galeri_bio_judul: 'Galeri Pesanan & Pre-Order', galeri_bio_jumlah: '8',
+    teks_pesan_galeri: 'Halo {toko} {cabang}, saya tertarik dengan contoh {jenis} ini ({kategori}). Bisa dibuatkan/dipesan? Mohon info kadar, berat, harga & lama pengerjaan.\nFoto: {foto}\nLihat: {link}',
     jual_judul: 'Jual Emas dengan Harga Tertinggi', jual_sub: 'Kami membeli emas perhiasan, logam mulia, emas lama, patah, rusak, hingga tanpa surat.',
     jual_poin: 'Emas perhiasan & logam mulia\nEmas lama, patah & rusak\nEmas tanpa surat\nDitimbang & dicek kadar di depan Anda\nDibayar tunai atau transfer saat itu juga',
     jual_catatan: 'Harga di atas adalah acuan awal per gram. Nilai akhir ditentukan setelah pengecekan kadar, berat & kondisi di toko.',
@@ -140,6 +150,16 @@
   const SHORT = {}; NAV_DEF.forEach(n => { if (n.id !== 'bio' && n.id !== 'menu') SHORT[n.id] = n.label; });
   App.shortLabel = m => { if (!m) return ''; if (m.custom) return m.label; const n = J('nav_items', []).find(x => x && x.id === m.id); return (n && n.label) || SHORT[m.id] || m.label; };
   /* tautan menu → href + atribut */
+  /* menu kategori ala aplikasi (bagian kategori_grid) — dipakai link bio & dasbor */
+  const KG_DEF = () => {
+    const K = n => 'assets/kat/' + n + '.png';
+    return [['Cincin', 'cincin', 'kat:Cincin'], ['Kalung', 'kalung', 'kat:Kalung'], ['Gelang', 'gelang', 'kat:Gelang'], ['Anting', 'anting', 'kat:Anting & Liontin'],
+      ['Logam Mulia', 'lm', 'kat:Logam Mulia'], ['Harga Emas', 'harga', '#/harga-emas'], ['Jual Emas', 'jual', '#/jual-emas'], ['Custom', 'custom', '#/galeri/custom'],
+      ['Pre-Order', 'po', '#/galeri/po'], ['Lelang', 'lelang', '#/lelang'], ['Sewa', 'sewa', 'kat:Sewa Pengantin'], ['Layanan', 'layanan', 'layanan']]
+      .map((x, i) => ({ id: 'k' + (i + 1), label: x[0], img: K(x[1]), icon: 'diamond', link: x[2], tampil: true }));
+  };
+  App.kgItems = function () { let a = null; try { a = JSON.parse(((App.mode === 'admin' && App.admin && App.admin.settings) || (App.pub && App.pub.settings) || {}).kg_items || 'null'); } catch (e) { } return Array.isArray(a) && a.length ? a : KG_DEF(); };
+  App.KG_DEF = KG_DEF;
   App.menuLink = function (m) {
     let l = String((m && m.link) || '').trim();
     const pages = { bio: '#/', katalog: '#/katalog', bayar: '#/bayar', pembayaran: '#/bayar', layanan: '#/layanan', lokasi: '#/lokasi', keranjang: '#/keranjang' };
@@ -147,7 +167,7 @@
     if (/^aksi:/.test(l)) return { href: '#', attr: ' data-act="' + l.slice(5) + '"' + (l === 'aksi:menu' ? ' data-menu' : '') };
     if (/^kat:/.test(l)) return { href: '#/katalog/' + encodeURIComponent('k:' + l.slice(4)), attr: ' data-nav="katalog"' };
     if (/^cari:/.test(l)) return { href: '#/katalog/' + encodeURIComponent('q:' + l.slice(5)), attr: ' data-nav="katalog"' };
-    if (/^#\//.test(l)) { const nv = { '#/harga-emas': 'harga', '#/jual-emas': 'jualemas', '#/lelang': 'lelang', '#/akun': 'akun' }[l]; return { href: l, attr: nv ? ' data-nav="' + nv + '"' : '' }; }
+    if (/^#\//.test(l)) { const nv = { '#/harga-emas': 'harga', '#/jual-emas': 'jualemas', '#/lelang': 'lelang', '#/akun': 'akun', '#/galeri/custom': 'galeri', '#/galeri/po': 'galeripo' }[l]; return { href: l, attr: nv ? ' data-nav="' + nv + '"' : '' }; }
     if (/^#./.test(l)) return { href: '#/katalog/' + encodeURIComponent('q:' + l.slice(1)), attr: ' data-nav="katalog"' };
     if (/^(https?:|mailto:|tel:)/i.test(l)) return { href: l, attr: ' target="_blank" rel="noopener"' };
     if (/^wa\.me|^[\w-]+(\.[\w-]+)+/i.test(l)) return { href: 'https://' + l, attr: ' target="_blank" rel="noopener"' };
@@ -563,7 +583,7 @@
       }
       try { Store.set(ICON_KEY, ic); } catch (e) { }
     }
-    const man = { name: nama, short_name: nama.length > 12 ? nama.slice(0, 12).trim() : nama, description: S.meta_deskripsi || S.tagline || '', id: appRoot, start_url: appRoot + '#/', scope: appRoot,
+    const man = { name: nama, short_name: String(S.nama_pendek || nama).trim(), description: S.meta_deskripsi || S.tagline || '', id: appRoot, start_url: appRoot + '#/', scope: appRoot,
       display: 'standalone', display_override: ['standalone', 'minimal-ui'], orientation: 'portrait', lang: 'id',
       background_color: Wc('warna_latar'), theme_color: Wc('warna_header'),
       icons: [{ src: ic.i192, sizes: '192x192', type: 'image/png', purpose: 'any' }, { src: ic.i512, sizes: '512x512', type: 'image/png', purpose: 'any' }, { src: ic.mask, sizes: '512x512', type: 'image/png', purpose: 'maskable' }],

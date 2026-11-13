@@ -316,14 +316,16 @@
     if (cartOn()) cartUi();
   }
   /* ======================= BAGIKAN: link + QR Code (unduh & pindai) ======================= */
-  A.shareSheet = function (url, judul) {
+  A.shareSheet = function (url, judul, opt) {
+    opt = opt || {};
     url = url || location.href.split('#')[0];
     const toko = S().nama_toko || (window.ACC_CONFIG || {}).NAMA_USAHA || 'Bio Link', title = judul || toko + ' — Link Bio Resmi';
     const txt = title + '\n' + url, enc = encodeURIComponent;
     const tujuan = [['WhatsApp', 'whatsapp', 'https://wa.me/?text=' + enc(txt)], ['Facebook', 'facebook', 'https://www.facebook.com/sharer/sharer.php?u=' + enc(url)],
       ['Telegram', 'telegram', 'https://t.me/share/url?url=' + enc(url) + '&text=' + enc(title)], ['X', 'x', 'https://twitter.com/intent/tweet?url=' + enc(url) + '&text=' + enc(title)]];
     let qrSvg = ''; try { qrSvg = window.QR ? QR.svg(url, { ecl: 'Q' }) : ''; } catch (e) { }
-    const o = A.sheet('<div class="share">' +
+    const fotoBtn = opt.foto && A.shareFoto ? '<button class="share-foto" data-sfoto><img src="' + esc(img(opt.foto, 200)) + '" alt=""><span class="grow"><b>Kirim foto + link</b><small>' + (A.canShareFiles && A.canShareFiles() ? 'Foto produk ikut terkirim ke WhatsApp, Instagram, dll.' : 'Buka WhatsApp dengan nama, harga & link produk') + '</small></span>' + I('send') + '</button>' : '';
+    const o = A.sheet('<div class="share">' + fotoBtn +
       '<div class="qr-card"><div class="qr-box">' + qrSvg + '<img class="qr-logo" src="' + esc(logo()) + '" alt=""></div><b>' + esc(title) + '</b><span class="muted small">Pindai dengan kamera HP untuk membuka</span></div>' +
       '<div class="link-row"><span class="si-wrap">' + A.socIcon('link') + '</span><input class="inp mono" readonly value="' + esc(url) + '" aria-label="Tautan" data-url><button class="btn btn-amber btn-sm" data-copy>' + I('content_copy') + 'Salin</button></div>' +
       '<div class="share-grid">' + tujuan.map(t => '<a class="share-btn" href="' + esc(t[2]) + '" target="_blank" rel="noopener"><span class="b ' + t[1] + '">' + A.socIcon(t[1]) + '</span>' + t[0] + '</a>').join('') + '</div>' +
@@ -331,6 +333,7 @@
       (!A.isStandalone() ? '<button class="install-card mt12" data-act="install"><span class="ic">' + I('install_mobile') + '</span><span class="grow"><b>' + esc(T('tombol_install_teks')) + ' Aplikasi ' + esc(toko) + '</b><small>Buka lebih cepat dari layar utama HP, tanpa Play Store</small></span>' + I('arrow_forward') + '</button>' : '') + '</div>', { title: 'Bagikan' });
     o.addEventListener('click', e => { if (e.target.closest('[data-act="install"]')) setTimeout(() => o.close(), 0); });
     o.querySelector('[data-copy]').onclick = () => { A.copy(url, 'Tautan'); o.querySelector('[data-url]').select(); };
+    const sf = o.querySelector('[data-sfoto]'); if (sf) sf.onclick = () => A.shareFoto(opt.foto, opt.teks || title, url, sf);
     o.querySelector('[data-url]').onclick = e => e.target.select();
     const nat = o.querySelector('[data-native]'); if (nat) nat.onclick = () => navigator.share({ title, text: title, url }).catch(() => { });
     o.querySelector('[data-dl]').onclick = async e => {
@@ -555,7 +558,7 @@
           '<div class="row mt12"><button class="btn btn-ghost grow" data-x>' + I('restaurant_menu') + 'Pilih lagi</button><a class="btn btn-amber grow" href="#/keranjang" data-go>' + I('shopping_bag') + 'Lihat pesanan (' + Cart.count() + ')</a></div></div>', { center: true, title: 'Ditambahkan' });
         o.querySelector('[data-go]').onclick = () => o.close(); o.querySelector('[data-x]').addEventListener('click', () => { A._fromDetail = true; setTimeout(() => A.go('katalog'), 0); });
       };
-      el.querySelector('[data-share]').onclick = () => A.shareSheet(location.href.split('#')[0] + '#/produk/' + encodeURIComponent(p.id), p.nama + ' — ' + rp(p.harga));
+      el.querySelector('[data-share]').onclick = () => A.shareSheet(location.href.split('#')[0] + '#/produk/' + encodeURIComponent(p.id), p.nama + ' — ' + rp(p.harga), { foto: (p.foto || [])[0], teks: '*' + p.nama + '*\n' + rp(p.harga) + (p.harga_auto ? ' (mengikuti harga emas hari ini)' : '') + (p.deskripsi ? '\n' + String(p.deskripsi).slice(0, 140) + (String(p.deskripsi).length > 140 ? '…' : '') : '') + '\n' + (S().nama_toko || '') });
       el.querySelectorAll('[data-w]').forEach(b => b.onclick = () => { pilihWarna = b.dataset.w; el.querySelectorAll('[data-w]').forEach(x => x.classList.toggle('on', x === b)); el.querySelector('[data-wl]').textContent = pilihWarna; });
       const gal = el.querySelector('[data-gal]'), cnt = el.querySelector('[data-cnt]');
       gal.addEventListener('scroll', A.debounce(() => { const i = Math.round(gal.scrollLeft / gal.clientWidth); if (cnt) cnt.textContent = (i + 1) + ' / ' + foto.length; el.querySelectorAll('[data-th]').forEach(t => t.classList.toggle('on', +t.dataset.th === i)); }, 50), { passive: true });

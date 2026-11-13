@@ -229,6 +229,58 @@ Produk dengan **Jenis produk = Disewakan** menampilkan tombol **Sewa Sekarang**:
 - Sewa wajib KTP. Jadwal yang bentrok ditolak.
 - Admin mengubah status di menu **Sewa** (Menunggu → Disetujui → Berjalan → Selesai/Batal). Status *Disetujui* mengirim WA ke member bila notifikasi aktif.
 
+### Menu Kategori ala aplikasi (beranda)
+Di bawah slide hero ada **menu kategori bergaya aplikasi HP**: 4 kolom × 2 baris, geser ke kanan untuk menu ke-9 dan seterusnya (desktop menampilkan semuanya dalam satu baris).
+- Atur di **Tampilan & Teks → Bagian Link Bio → Menu Kategori (ala Aplikasi) → Atur**.
+- Tiap menu bisa dinyalakan/dimatikan, diganti nama, diurutkan, dan diberi **ikon** atau **gambar ilustrasi** (PNG transparan ±160 px).
+- Tujuannya bisa kategori katalog, halaman (Harga Emas, Jual Emas, Galeri, Lelang, Akun), kata pencarian, atau link luar.
+- Tersedia juga judul opsional, bentuk ikon (kotak membulat / lingkaran / tanpa latar), dan tombol **Kembalikan bawaan**.
+
+### Galeri Pesanan Custom & Galeri Pre-Order
+Dua galeri foto **tanpa judul, deskripsi, atau harga**:
+- **Galeri Custom** (`#/galeri/custom`) berisi contoh pesanan dan model custom: cincin nama, liontin nama, cincin kawin, dll.
+- **Galeri Pre-Order** (`#/galeri/po`) berisi model baru atau perhiasan jadi yang tidak ada di toko tetapi bisa dipesan.
+
+**Unggah foto** (dasbor → **Galeri Custom & PO**):
+1. Pilih tab galeri.
+2. Isi **kategori** (pilih dari daftar atau ketik baru) dan kata kunci (opsional).
+3. Pilih atau seret **banyak foto sekaligus**. Foto dikompres otomatis dan diunggah 3 sekaligus, dengan progres per foto.
+
+**Kelola foto**: ketuk foto untuk memilih (bisa banyak), lalu:
+- ubah kategori;
+- pindah ke galeri lain (Custom ↔ PO);
+- sembunyikan atau tampilkan;
+- naikkan ke atas;
+- hapus (berkas di Drive ikut dibuang).
+
+Admin cabang mengelola foto yang ia unggah sendiri.
+
+**Untuk pelanggan**:
+- Pencarian membaca kategori dan kata kunci. Filter kategori menampilkan jumlah foto per kategori.
+- Ada 5 pilihan tampilan: **Grid, Mosaik, Masonry, Besar, Rapat**.
+- Ketuk foto untuk membukanya layar penuh (bisa digeser). Tombol **Tanyakan model ini** membuka WhatsApp toko dengan pesan berisi **link foto** dan **link galeri**, sehingga admin langsung tahu model yang ditanyakan.
+
+**Display & Layout** (superadmin, di halaman yang sama): pilih tampilan yang boleh dipakai pengunjung, tampilan awal HP dan desktop, jarak & sudut foto, label kategori di foto, urutan kategori, teks halaman, serta isi pesan WhatsApp.
+
+### Bagikan produk dengan foto
+Tombol **Bagikan** di detail produk punya pilihan **Kirim foto + link**:
+- Di HP (Android/iPhone), foto produk dikirim sebagai gambar beserta nama, harga, keterangan singkat & link ke WhatsApp, Instagram, dll.
+- Di komputer, WhatsApp terbuka dengan teks + link.
+
+Link situs yang ditempel di WhatsApp/Facebook menampilkan **gambar sampul** `assets/og-cover.jpg` beserta judul & deskripsi.
+- ⚠️ Di `index.html`, ubah alamat `og:image` dan `og:url` bila alamat GitHub Pages Anda bukan `nabirekreatif.github.io/biolink`. Tema Blogger mengaturnya otomatis.
+- Ganti gambar sampul dengan menimpa `assets/og-cover.jpg` (1200×630 px).
+
+### Notifikasi & suara di dasbor
+- Dasbor memeriksa setiap ±45 detik (dan saat dasbor dibuka kembali) apakah ada:
+  - pengajuan **sewa** baru;
+  - **klaim lelang** yang belum ditukar;
+  - **member** yang perlu diverifikasi.
+- Bila ada yang baru: bunyi + getar, pesan 🔔, dan angka merah di menu & ikon lonceng.
+- Ketuk **🔔** untuk melihat daftarnya, mematikan suara, atau **Tes suara**.
+- Simpan berhasil / gagal juga memakai bunyi singkat.
+- Di HP, suara baru aktif setelah layar dasbor disentuh sekali (aturan browser).
+
 ---
 
 ## 5. Reset data contoh & reset sandi superadmin (lewat backend)
@@ -241,7 +293,8 @@ Keduanya **hanya** bisa dijalankan dari editor Apps Script. Tidak ada tombol di 
 | Pakai data contoh **toko emas** (bawaan) | **`gantiKeDataEmas`** | 23 perhiasan (emas, perak, non-logam, sewa pengantin), 14 kadar, 4 slide, 5 layanan, toko Emas Kota Bali & Emas Putri Bali, FAQ, menu & teks toko emas, event lelang contoh. Akun admin & member tidak diubah. |
 | Pakai data contoh **kuliner** | **`gantiKeDataKuliner`** | Data contoh rumah makan. Akun admin tidak diubah. |
 | Pakai data contoh **toko HP** | **`gantiKeDataHP`** | Data contoh konter handphone (katalog HP, servis, tukar tambah). Akun admin tidak diubah. |
-| Lupa sandi superadmin | **`resetPasswordSuperadmin`** | Sandi sementara tampil di **Log eksekusi**, semua sesi lama dicabut, dan sandi wajib diganti saat login. |
+| Lupa sandi admin/superadmin (paling mudah) | Halaman masuk dasbor → **Lupa sandi? Kirim tautan ke email** | Tautan **sekali pakai, berlaku 30 menit** dikirim ke Gmail akun (kolom email di **Admin & Akses**). Superadmin tanpa email menerima di **Gmail pemilik Apps Script**. Sandi lama tetap berlaku sampai tautan dipakai. |
+| Lupa sandi superadmin (tanpa email) | **`resetPasswordSuperadmin`** | Sandi sementara tampil di **Log eksekusi**, semua sesi lama dicabut, dan sandi wajib diganti saat login. |
 | Menentukan sendiri sandi sementara | Setelan proyek → **Properti skrip** → tambah `SUPERADMIN_SANDI_BARU` = sandi pilihan, lalu jalankan `resetPasswordSuperadmin` | Properti otomatis dihapus setelah dipakai. |
 | Lupa sandi admin cabang | Dasbor superadmin → **Admin & Akses → Reset** | Admin tersebut wajib mengganti sandi saat login. |
 | Pemicu hilang / antrean WA macet | **`pasangTrigger`** | Pemicu 1 menit dipasang ulang. |
@@ -293,6 +346,11 @@ Dasbor → **Migrasi Data** → tempel URL spreadsheet lama → pilih data → *
   - Tombol bagikan ke **WhatsApp, Facebook, Telegram, X**, dan aplikasi lain.
 - Tombol bagikan di halaman detail produk memakai lembar yang sama, jadi QR-nya langsung membuka produk tersebut.
 
+- **Nama aplikasi di layar HP**: atur di **Bagian → Profil & Logo → Nama aplikasi di layar HP** (bawaan "Emas Kota Bali").
+  - Sebelumnya nama terpotong menjadi "Emas Kota Ba" oleh template. Sekarang nama dikirim utuh.
+  - Beberapa launcher Android tetap memotong nama panjang. Bila masih terpotong, pakai nama yang lebih pendek (mis. "Kota Bali").
+  - Untuk aplikasi yang **sudah terpasang**, hapus dulu ikon lama lalu pasang ulang agar nama baru terbaca.
+
 ## 10. Lisensi template (Nabire Kreatif)
 
 - Domain yang belum berlisensi tampil dalam **mode DEMO**: hanya ada **pita merah "DEMO"** di pojok kiri atas. Tidak ada bilah melayang di bawah, dan semua fitur tetap berjalan.
@@ -338,6 +396,11 @@ Catatan Blogger:
 2. Memakai spreadsheet lama: tempel kelima berkas `.gs`, jalankan `setupAplikasi()` (menambah sheet Kadar, HargaLog, Member, Sewa, LelangKlaim & kolom produk baru) lalu **`gantiKeDataEmas()`**.
 3. Deploy **Versi baru**, unggah isi ZIP ke GitHub (tetap pakai `js/config.js` lama yang berisi URL), push. Blogger: pasang `tema-tokoemas.xml`.
 
+**Toko Emas v2** (menu kategori ala aplikasi, Galeri Custom & PO, reset sandi via email, suara notifikasi, bagikan foto):
+1. Tempel ulang **`Kode.gs`** dan **`Emas.gs`**, jalankan **`setupAplikasi()`** (menambah sheet **Galeri** + 2 bagian baru), lalu Deploy → **Versi baru**.
+2. Data contoh galeri & menu kategori: jalankan **`gantiKeDataEmas()`** (produk & pengaturan diganti contoh). Tanpa itu, menu kategori memakai susunan bawaan dan galeri kosong sampai Anda mengunggah foto.
+3. Unggah isi ZIP baru ke GitHub (pertahankan `js/config.js` Anda). Layar pembuka tidak lagi memakai logo/cache aplikasi lain di domain yang sama (mis. Acc Cell): cache lama dibersihkan otomatis.
+
 ## Kecepatan & PageSpeed
 
 - Pengunjung yang membuka ulang dalam **2 menit** langsung melihat tampilan terakhir. Lebih dari itu, halaman **menunggu data terbaru** (maks. 3 detik) sehingga hasil edit dasbor (gambar hero, pop-up, teks) langsung tampil, **tanpa tampilan lama atau data contoh muncul dulu**. Bila server lambat > 3 detik, tampilan terakhir dipakai sementara. Pop-up promo hanya dibuka dari data terbaru.
@@ -363,6 +426,8 @@ Catatan Blogger:
 | Warna/teks baru belum tampil | Tunggu ±1 menit atau muat ulang halaman. Pastikan backend sudah *Versi baru* v4. |
 | Harga emas tidak berubah otomatis | Cek **Harga Emas → Sumber = Otomatis**, API key tersimpan, dan pesan galat di kartu "Update terakhir". Kuota GoldAPI habis → pakai interval lebih jarang atau harga manual. Pastikan pemicu aktif (`pasangTrigger`). |
 | Lupa sandi member: "hubungi admin" | Notifikasi WhatsApp (Fonnte) belum aktif. Aktifkan di menu WhatsApp & Notifikasi, atau superadmin → **Member → Reset sandi** (sandi sementara tampil di layar admin). |
+| Layar pembuka masih menampilkan logo usaha lain | Muat ulang sekali (cache lama otomatis dihapus). Bila tetap, Chrome → Setelan situs → Hapus data, atau buka di jendela Samaran. |
+| Email reset sandi tidak datang | Cek folder Spam/Promosi. Pastikan email akun terisi di **Admin & Akses**. Kuota MailApp Gmail biasa ±100 email/hari. |
 | Halaman terkunci "Template tidak berlisensi" | Ada berkas tersegel yang diubah, atau hosting mengubah berkas. Unggah ulang berkas asli. |
 
 ## Batasan yang perlu diketahui

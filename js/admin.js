@@ -46,6 +46,7 @@
     { g: 'Toko Emas' },
     { id: 'emas', t: 'Harga Emas', i: 'monitoring', all: 1 },
     { id: 'lelang', t: 'Lelang', i: 'gavel', all: 1 },
+    { id: 'galeri', t: 'Galeri Custom & PO', i: 'photo_library', all: 1 },
     { id: 'sewa', t: 'Sewa Perhiasan', i: 'event_available', all: 1 },
     { id: 'member', t: 'Member', i: 'verified_user' },
     { g: 'Tampilan Link Bio' },
@@ -86,11 +87,12 @@
 
   function render(e, sub) {
     if (A.demo) { A.splash.hide(); return renderSetup(e); }
+    if ((!A.token || !A.user) && /^reset\//.test(String(sub || ''))) { shellBuilt = false; document.body.classList.remove('adm-shell'); return renderReset(e, String(sub).slice(6)); }
     if (!A.token || !A.user) { shellBuilt = false; document.body.classList.remove('adm-shell'); A.splash.selesai(800); return renderLogin(e); }
     if (A.mustChange) { shellBuilt = false; document.body.classList.remove('adm-shell'); A.splash.selesai(800); return renderMustChange(e); }
     const sp = String(sub || '').split('/');
     view = allowed(sp[0]) ? sp[0] : 'beranda'; view2 = view === sp[0] ? (sp[1] || '') : '';
-    if (!shellBuilt) buildShell(e);
+    if (!shellBuilt) { buildShell(e); mulaiNotif(); setTimeout(badgeNotif, 0); }
     if (!A.admin) { const c = Store.get(bootKey(), null); if (c) A.admin = c.data; }   // tampil seketika dari cache perangkat
     show(view);
     if (A.admin) A.splash.selesai(1500);
@@ -114,9 +116,10 @@
       '<div class="fld"><label for="lu">Username</label><input id="lu" name="username" autocomplete="username" autocapitalize="none" required></div>' +
       '<div class="fld"><label for="lp">Sandi</label><div style="position:relative"><input id="lp" name="password" type="password" autocomplete="current-password" required><button type="button" class="clr" data-eye style="position:absolute;right:6px;top:7px;width:34px;height:34px">' + I('visibility') + '</button></div></div>' +
       '<div class="small" style="color:var(--danger);min-height:16px" data-err></div><button class="btn btn-ink btn-block" data-go>' + I('login') + 'Masuk</button>' +
-      '<a class="btn btn-ghost btn-block" href="../">' + I('arrow_back') + 'Kembali ke Link Bio</a><p class="muted tiny center" style="margin:0">Lupa sandi? Admin cabang: hubungi superadmin. Superadmin: jalankan <span class="mono">resetPasswordSuperadmin()</span> di editor Apps Script.</p></form></div>';
+      '<a class="btn btn-ghost btn-block" href="../">' + I('arrow_back') + 'Kembali ke Link Bio</a><button type="button" class="btn btn-link btn-block" data-lupa>Lupa sandi? Kirim tautan ke email</button></form></div>';
     const f = e.querySelector('form'), err = e.querySelector('[data-err]'), go = e.querySelector('[data-go]');
     e.querySelector('[data-eye]').onclick = () => { const p = e.querySelector('#lp'); p.type = p.type === 'password' ? 'text' : 'password'; };
+    e.querySelector('[data-lupa]').onclick = lupaAdmin;
     f.onsubmit = async ev => {
       ev.preventDefault(); err.textContent = ''; go.disabled = true; go.innerHTML = I('hourglass_top') + 'Memeriksa…';
       const r = await A.api('login', { username: f.username.value.trim(), password: f.password.value });
@@ -151,11 +154,11 @@
     const bn = BNAV();
     e.innerHTML = '<div class="adm"><nav class="side" aria-label="Menu dasbor"><div class="row" style="padding:4px 10px 12px"><span class="avatar-i">' + esc((A.user.nama || 'A').slice(0, 1).toUpperCase()) + '</span><div class="grow"><b class="ell" style="display:block;font:700 14px var(--f-head)">' + esc(A.user.nama) + '</b><span class="muted tiny">' + (isSA() ? 'Superadmin' : 'Admin ' + cabNama(A.user.cabang)) + '</span></div></div>' +
       items.map(m => m.g ? '<div class="grp">' + esc(m.g) + '</div>' : '<a href="#/' + m.id + '" data-v="' + m.id + '">' + I(m.i) + esc(m.t) + '</a>').join('') +
-      '<div class="grp">Lainnya</div><button data-nk-license>' + I('key') + 'Lisensi</button><a href="' + SITUS() + '" target="_blank">' + I('open_in_new') + 'Lihat Link Bio</a><button data-logout>' + I('logout') + 'Keluar</button></nav>' +
+      '<div class="grp">Lainnya</div><button data-bell class="bell-side">' + I('notifications') + 'Notifikasi</button><button data-nk-license>' + I('key') + 'Lisensi</button><a href="' + SITUS() + '" target="_blank">' + I('open_in_new') + 'Lihat Link Bio</a><button data-logout>' + I('logout') + 'Keluar</button></nav>' +
       '<div class="adm-col">' +
       // bilah atas ala aplikasi (HP): kembali · judul · lihat situs
       '<header class="adm-bar"><a class="adm-ic" data-back href="#/" aria-label="Kembali">' + I('arrow_back') + '</a><span class="avatar-i adm-av" aria-hidden="true">' + esc((A.user.nama || 'A').slice(0, 1).toUpperCase()) + '</span>' +
-      '<b class="adm-ttl ell" data-ttl>Dasbor</b><a class="adm-ic" href="' + SITUS() + '" target="_blank" aria-label="Lihat Link Bio">' + I('open_in_new') + '</a></header>' +
+      '<b class="adm-ttl ell" data-ttl>Dasbor</b><button class="adm-ic bell" data-bell aria-label="Notifikasi">' + I('notifications') + '</button><a class="adm-ic" href="' + SITUS() + '" target="_blank" aria-label="Lihat Link Bio">' + I('open_in_new') + '</a></header>' +
       '<div class="adm-main" data-main></div></div></div>' +
       '<nav class="bnav adm-bnav" aria-label="Navigasi dasbor" style="--n:' + bn.length + '"><div class="bnav-in">' +
       bn.map(x => '<a href="#/' + x[0] + '" data-v="' + x[0] + '">' + I(x[2]) + '<span>' + x[1] + '</span></a>').join('') + '</div></nav>';
@@ -168,6 +171,7 @@
   new MutationObserver(() => { if (pendRefresh && shellBuilt && A.cur === 'admin' && !document.querySelector('.overlay')) { pendRefresh = false; show(view, true); } }).observe(document.body, { childList: true });
   function show(v, fromRefresh) {
     if (!el || !shellBuilt) return;
+    setTimeout(badgeNotif, 60);
     const inBn = BNAV().some(b => b[0] === v);
     el.querySelectorAll('[data-v]').forEach(a => a.classList.toggle('on', a.dataset.v === v || (!inBn && a.dataset.v === 'menu' && a.closest('.adm-bnav'))));
     // bilah atas HP: tombol kembali hanya di sub-halaman; judul mengikuti halaman
@@ -187,7 +191,7 @@
   VIEWS.menu = function (m) {
     const groups = []; let cur = { g: 'Utama', it: [] }; groups.push(cur);
     MENU.forEach(x => { if (x.hide) return; if (x.g) { if (!isSA() && x.g !== 'Toko Emas') return; cur = { g: x.g, it: [] }; groups.push(cur); return; } if (x.all || isSA()) cur.it.push(x); });
-    const DESK = { beranda: 'Ringkasan & statistik', produk: 'Tambah, edit, stok & harga', emas: 'Harga per kadar, manual / otomatis', lelang: 'Event lelang & tukar kode', sewa: 'Pengajuan sewa member', member: 'Verifikasi KTP, nota & lelang', tampilan: 'Bagian, menu, warna & teks', banner: 'Foto promo bergeser', popup: 'Gambar pop-up saat dibuka', bayar: 'Rekening & QRIS', cabang: 'Outlet, WA & sosmed', layanan: 'Halaman layanan', notif: 'Blast & notifikasi WA', crm: 'Data kontak pelanggan', pengguna: 'Akun admin outlet', migrasi: 'Impor data lama', log: 'Riwayat perubahan', akun: 'Profil & ganti sandi' };
+    const DESK = { beranda: 'Ringkasan & statistik', produk: 'Tambah, edit, stok & harga', emas: 'Harga per kadar, manual / otomatis', lelang: 'Event lelang & tukar kode', galeri: 'Unggah banyak foto contoh custom & PO', sewa: 'Pengajuan sewa member', member: 'Verifikasi KTP, nota & lelang', tampilan: 'Bagian, menu, warna & teks', banner: 'Foto promo bergeser', popup: 'Gambar pop-up saat dibuka', bayar: 'Rekening & QRIS', cabang: 'Outlet, WA & sosmed', layanan: 'Halaman layanan', notif: 'Blast & notifikasi WA', crm: 'Data kontak pelanggan', pengguna: 'Akun admin outlet', migrasi: 'Impor data lama', log: 'Riwayat perubahan', akun: 'Profil & ganti sandi' };
     m.innerHTML = '<div class="adm-me"><span class="avatar-i">' + esc((A.user.nama || 'A').slice(0, 1).toUpperCase()) + '</span><div class="grow"><b class="ell">' + esc(A.user.nama) + '</b><span class="muted tiny">' + (isSA() ? 'Superadmin' : 'Admin ' + cabNama(A.user.cabang)) + '</span></div><a class="btn btn-ghost btn-sm" href="#/akun">' + I('person') + 'Akun</a></div>' +
       groups.filter(g => g.it.length).map(g => '<div class="adm-grp">' + esc(g.g) + '</div><div class="adm-tiles">' + g.it.map(x => '<a href="#/' + x.id + '">' + I(x.i) + '<b>' + esc(x.t) + '</b><small>' + esc(DESK[x.id] || '') + '</small></a>').join('') + '</div>').join('') +
       '<div class="adm-grp">Lainnya</div><div class="adm-tiles"><a href="' + SITUS() + '" target="_blank">' + I('open_in_new') + '<b>Lihat Link Bio</b><small>Buka halaman publik</small></a><button data-nk-license>' + I('key') + '<b>Lisensi</b><small>Aktivasi template</small></button>' +
@@ -200,7 +204,7 @@
     busy(btn, true, opt && opt.label);
     const r = await A.api(action, data);
     busy(btn, false);
-    if (!r.success) A.toast(r.message || 'Gagal', 'err'); else if (r.message && !(opt && opt.silent)) A.toast(r.message);
+    if (!r.success) { A.toast(r.message || 'Gagal', 'err'); if (A.sound) A.sound('err'); } else if (r.message && !(opt && opt.silent)) { A.toast(r.message); if (A.sound) A.sound('ok'); }
     return r;
   }
 
@@ -458,6 +462,193 @@
     };
   }
 
+  /* ======================= GALERI PESANAN (Custom) & PRE-ORDER ======================= */
+  let galJ = 'custom', galK = '', galSel = new Set();
+  const galKats = () => { const a = String(T('galeri_kategori') || '').split(',').map(x => x.trim()).filter(Boolean); A.kategori().forEach(k => { if (a.indexOf(k) < 0 && k !== 'Sewa Pengantin') a.push(k); }); return a; };
+  const GAL_SPEC = () => [
+    { k: 'galeri_layout_hp', t: 'Tampilan awal di HP', type: 'select', opts: [['grid', 'Grid (kotak rata)'], ['mosaik', 'Mosaik (besar-kecil)'], ['masonry', 'Masonry (tinggi bervariasi)'], ['besar', 'Besar (satu per baris)'], ['rapat', 'Rapat (banyak foto)']], half: 1 },
+    { k: 'galeri_layout_pc', t: 'Tampilan awal di desktop', type: 'select', opts: [['grid', 'Grid'], ['mosaik', 'Mosaik'], ['masonry', 'Masonry'], ['besar', 'Besar'], ['rapat', 'Rapat']], half: 1 },
+    { k: 'galeri_jarak', t: 'Jarak antar foto', type: 'select', opts: [['rapat', 'Rapat'], ['normal', 'Normal'], ['lega', 'Lega']], half: 1 },
+    { k: 'galeri_sudut', t: 'Sudut foto', type: 'select', opts: [['kotak', 'Kotak'], ['bulat', 'Membulat'], ['lingkar', 'Sangat bulat']], half: 1 },
+    { k: 'galeri_label', t: 'Tampilkan label kategori di foto', type: 'switch', yaTidak: 1 },
+    { k: 'galeri_kategori', t: 'Urutan kategori galeri', type: 'textarea', rows: 2, hint: 'Pisahkan koma. Kategori baru otomatis muncul saat dipakai.' },
+    { sec: 'Teks halaman' }, { k: 'galeri_custom_judul', t: 'Judul Galeri Custom', half: 1 }, { k: 'galeri_po_judul', t: 'Judul Galeri PO', half: 1 },
+    { k: 'galeri_custom_sub', t: 'Keterangan Galeri Custom', type: 'textarea', rows: 2 }, { k: 'galeri_po_sub', t: 'Keterangan Galeri PO', type: 'textarea', rows: 2 },
+    { k: 'teks_pesan_galeri', t: 'Pesan WhatsApp saat pelanggan bertanya', type: 'textarea', rows: 4, hint: 'Variabel: {toko} {jenis} {kategori} {foto} (link foto) {link} (link galeri)' }];
+  const LAY_ALL = [['grid', 'Grid', 'grid_view'], ['mosaik', 'Mosaik', 'auto_awesome_mosaic'], ['masonry', 'Masonry', 'view_quilt'], ['besar', 'Besar', 'view_day'], ['rapat', 'Rapat', 'apps']];
+  VIEWS.galeri = function (m) {
+    let list = Store.get('a:galeri', null);
+    m.innerHTML = head('Galeri Pesanan & PO', '<a class="btn btn-ghost btn-sm" href="' + SITUS() + '#/galeri/' + galJ + '" target="_blank">' + I('open_in_new') + 'Lihat galeri</a>') +
+      '<div class="seg" data-gj>' + [['custom', 'Galeri Custom', 'photo_library'], ['po', 'Galeri Pre-Order', 'collections']].map(x => '<button data-v="' + x[0] + '"' + (x[0] === galJ ? ' class="on"' : '') + '>' + I(x[2]) + x[1] + ' <small data-c="' + x[0] + '"></small></button>').join('') + '</div>' +
+      '<div class="panel mt12 gup"><div class="panel-h"><h3>' + I('add_photo_alternate') + 'Unggah banyak foto</h3></div>' +
+      '<div class="f2"><div class="fld"><label>Kategori</label><input name="gkat" list="gkats" placeholder="mis. Cincin" value="' + esc(Store.get('gal_lastkat', galKats()[0] || '')) + '"><datalist id="gkats">' + galKats().map(k => '<option value="' + esc(k) + '">').join('') + '</datalist></div>' +
+      '<div class="fld"><label>Kata kunci (opsional)</label><input name="gtag" placeholder="mis. nama, inisial, couple"></div></div>' +
+      '<label class="drop" data-drop><input type="file" accept="image/*" multiple hidden data-gfile>' + I('cloud_upload') + '<b>Pilih / seret foto ke sini</b><small>Bisa pilih puluhan foto sekaligus · tanpa judul & harga · dikompres otomatis</small></label>' +
+      '<div class="gq" data-gq></div></div>' +
+      '<div class="panel"><div class="panel-h"><h3 data-gt>Foto</h3><div class="row" style="gap:6px"><button class="btn btn-ghost btn-sm" data-selall>' + I('done_all') + 'Pilih semua</button></div></div>' +
+      '<div class="pills" data-gk></div><div class="ag-grid mt12" data-gg><div class="skel" style="height:160px;grid-column:1/-1"></div></div></div>' +
+      '<div class="ag-bar" data-bar hidden><b data-bn></b><button class="btn btn-ghost btn-sm" data-act="kat">' + I('label') + 'Kategori</button><button class="btn btn-ghost btn-sm" data-act="pindah">' + I('swap_horiz') + 'Pindah</button>' +
+      '<button class="btn btn-ghost btn-sm" data-act="sembunyi">' + I('visibility_off') + 'Sembunyi/Tampil</button><button class="btn btn-ghost btn-sm" data-act="atas">' + I('vertical_align_top') + 'Ke atas</button><button class="btn btn-ghost btn-sm danger" data-act="hapus">' + I('delete') + 'Hapus</button><button class="icon-btn" data-act="batal" aria-label="Batal pilih">' + I('close') + '</button></div>' +
+      (isSA() ? '<div class="panel"><div class="panel-h"><h3>' + I('dashboard_customize') + 'Tampilan Galeri (Display & Layout)</h3></div><form class="f" data-gs>' +
+        '<div class="fld"><span>Pilihan tampilan yang boleh dipakai pengunjung</span><div class="lay-pick">' + LAY_ALL.map(l => '<label><input type="checkbox" value="' + l[0] + '"' + (String(T('galeri_layouts')).split(',').indexOf(l[0]) > -1 ? ' checked' : '') + '><span>' + I(l[2]) + l[1] + '</span></label>').join('') + '</div><div class="hint">Pengunjung bisa mengganti tampilan dengan tombol di kanan kotak pencarian. Hanya 1 dipilih = tombol disembunyikan.</div></div>' +
+        form(GAL_SPEC(), vals()) + '<button class="btn btn-ink btn-block" data-go>' + I('save') + 'Simpan Tampilan Galeri</button></form></div>' : '');
+    const q = x => m.querySelector(x);
+    const counts = () => { if (!list) return; ['custom', 'po'].forEach(j => { const e = q('[data-c="' + j + '"]'); if (e) e.textContent = list.filter(g => g.jenis === j).length; }); };
+    const draw = () => {
+      if (!list) return; counts();
+      const L = list.filter(g => g.jenis === galJ), cats = {}; L.forEach(g => cats[g.kategori] = (cats[g.kategori] || 0) + 1);
+      q('[data-gk]').innerHTML = '<button class="pill' + (galK ? '' : ' on') + '" data-k="">Semua <span class="cnt">' + L.length + '</span></button>' + Object.keys(cats).map(c => '<button class="pill' + (c === galK ? ' on' : '') + '" data-k="' + esc(c) + '">' + esc(c) + ' <span class="cnt">' + cats[c] + '</span></button>').join('');
+      const V = L.filter(g => !galK || g.kategori === galK);
+      q('[data-gt]').textContent = (galJ === 'po' ? 'Foto Pre-Order' : 'Foto Custom') + ' (' + V.length + ')';
+      q('[data-gg]').innerHTML = V.length ? V.map(g => '<button class="ag' + (galSel.has(g.id) ? ' sel' : '') + (g.aktif === false ? ' off' : '') + '" data-id="' + esc(g.id) + '"><img src="' + esc(img(g.foto_url, 260)) + '" alt="" loading="lazy"><span class="ag-k">' + esc(g.kategori) + '</span>' + (g.aktif === false ? '<span class="ag-h">' + I('visibility_off') + '</span>' : '') + '<span class="ag-c">' + I('check') + '</span></button>').join('')
+        : '<div class="empty" style="grid-column:1/-1">' + I('photo_library') + '<p>Belum ada foto. Unggah foto di atas.</p></div>';
+      const bar = q('[data-bar]'); bar.hidden = !galSel.size; q('[data-bn]').textContent = galSel.size + ' dipilih';
+    };
+    const load = () => A.api('galeri.list').then(r => { if (r.success) { list = r.data; Store.set('a:galeri', list); galSel.forEach(id => { if (!list.some(g => g.id === id)) galSel.delete(id); }); draw(); } else if (!list) q('[data-gg]').innerHTML = '<div class="note red">' + esc(r.message) + '</div>'; });
+    draw(); load();
+    q('[data-gj]').onclick = e => { const b = e.target.closest('[data-v]'); if (!b) return; galJ = b.dataset.v; galK = ''; galSel.clear(); m.querySelectorAll('[data-gj] button').forEach(x => x.classList.toggle('on', x === b)); draw(); };
+    q('[data-gk]').onclick = e => { const b = e.target.closest('[data-k]'); if (!b) return; galK = b.dataset.k; draw(); };
+    q('[data-gg]').onclick = e => { const b = e.target.closest('[data-id]'); if (!b) return; galSel.has(b.dataset.id) ? galSel.delete(b.dataset.id) : galSel.add(b.dataset.id); draw(); };
+    q('[data-selall]').onclick = () => { const V = (list || []).filter(g => g.jenis === galJ && (!galK || g.kategori === galK)); const all = V.every(g => galSel.has(g.id)); V.forEach(g => all ? galSel.delete(g.id) : galSel.add(g.id)); draw(); };
+    /* unggah banyak: 3 sekaligus, progres per foto */
+    const qbox = q('[data-gq]');
+    const upload = async files => {
+      files = [...files].filter(f => /^image\//.test(f.type)); if (!files.length) return;
+      const kat = q('[name="gkat"]').value.trim() || 'Lainnya', tag = q('[name="gtag"]').value.trim(), jenis = galJ;
+      Store.set('gal_lastkat', kat);
+      const jobs = files.map((f, i) => { const u = URL.createObjectURL(f), el = document.createElement('div'); el.className = 'gq-it'; el.innerHTML = '<img src="' + u + '" alt=""><i></i>'; qbox.appendChild(el); return { f, el }; });
+      let ok = 0, gagal = 0, idx = 0;
+      const worker = async () => { while (idx < jobs.length) { const j = jobs[idx++]; j.el.classList.add('up');
+        try { const c = await compress(j.f, 1400); const r = await A.api('galeri.unggah', { jenis, kategori: kat, tag, base64: c.b64, mime: c.mime }, { timeout: 120000 });
+          if (!r.success) throw new Error(r.message); ok++; j.el.className = 'gq-it done'; (list = list || []).unshift(r.data); }
+        catch (er) { gagal++; j.el.className = 'gq-it err'; j.el.title = er.message || 'Gagal'; } } };
+      await Promise.all([worker(), worker(), worker()]);
+      Store.set('a:galeri', list); draw(); refreshPublic();
+      A.toast(ok + ' foto masuk ' + (jenis === 'po' ? 'Galeri PO' : 'Galeri Custom') + ' · ' + kat + (gagal ? ' · ' + gagal + ' gagal' : ''), gagal ? 'err' : 'ok');
+      if (A.sound) A.sound('ok');
+      setTimeout(() => { qbox.querySelectorAll('.done').forEach(x => x.remove()); }, 2500);
+    };
+    q('[data-gfile]').onchange = e => { upload(e.target.files); e.target.value = ''; };
+    const dz = q('[data-drop]');
+    ['dragenter', 'dragover'].forEach(t => dz.addEventListener(t, e => { e.preventDefault(); dz.classList.add('over'); }));
+    ['dragleave', 'drop'].forEach(t => dz.addEventListener(t, e => { e.preventDefault(); dz.classList.remove('over'); }));
+    dz.addEventListener('drop', e => upload(e.dataTransfer.files));
+    /* aksi massal */
+    q('[data-bar]').onclick = async e => {
+      const b = e.target.closest('[data-act]'); if (!b) return; const ids = [...galSel], a = b.dataset.act;
+      if (a === 'batal') { galSel.clear(); return draw(); }
+      let d = null;
+      if (a === 'kat') { const o = A.sheet('<form class="f"><div class="fld"><label>Kategori baru untuk ' + ids.length + ' foto</label><input name="k" list="gkats2" required><datalist id="gkats2">' + galKats().map(k => '<option value="' + esc(k) + '">').join('') + '</datalist></div><div class="fld"><label>Kata kunci (kosongkan bila tidak diubah)</label><input name="t"></div><button class="btn btn-ink btn-block">' + I('save') + 'Simpan</button></form>', { title: 'Ubah Kategori' });
+        o.querySelector('form').onsubmit = async ev => { ev.preventDefault(); const f = ev.target, x = { ids, kategori: f.k.value.trim() }; if (f.t.value.trim()) x.tag = f.t.value.trim(); const r = await call('galeri.ubah', x, f.querySelector('button')); if (r.success) { o.close(); galSel.clear(); load(); refreshPublic(); } }; return; }
+      if (a === 'pindah') d = { ids, jenis: galJ === 'po' ? 'custom' : 'po' };
+      if (a === 'sembunyi') { const sel = list.filter(g => galSel.has(g.id)); d = { ids, aktif: sel.some(g => g.aktif === false) }; }
+      if (a === 'atas') d = { ids, keAtas: true };
+      if (a === 'hapus') { if (!await A.confirm('Hapus ' + ids.length + ' foto dari galeri? Foto juga dibuang dari Drive.', 'Hapus', true)) return; const r = await call('galeri.hapus', { ids }, b); if (r.success) { galSel.clear(); list = list.filter(g => ids.indexOf(g.id) < 0); draw(); refreshPublic(); } return; }
+      const r = await call('galeri.ubah', d, b); if (r.success) { galSel.clear(); load(); refreshPublic(); }
+    };
+    const gs = q('[data-gs]');
+    if (gs) gs.onsubmit = async e => { e.preventDefault(); const d = read(gs, GAL_SPEC()); const lays = [...gs.querySelectorAll('.lay-pick input:checked')].map(x => x.value); if (!lays.length) return A.toast('Pilih minimal satu tampilan', 'err'); d.galeri_layouts = lays.join(',');
+      if (lays.indexOf(d.galeri_layout_hp) < 0) d.galeri_layout_hp = lays[0]; if (lays.indexOf(d.galeri_layout_pc) < 0) d.galeri_layout_pc = lays[0];
+      const r = await saveSet(d, gs.querySelector('[data-go]')); if (r.success) A.toast('Tampilan galeri disimpan'); };
+  };
+
+  /* ======================= MENU KATEGORI (grid ala aplikasi) — editor ======================= */
+  function editKg() {
+    let list = (A.kgItems ? A.kgItems() : []).map(x => Object.assign({}, x));
+    const o = A.sheet('<div class="note">' + I('info') + '<div>Menu bergaya aplikasi: <b>4 kolom × 2 baris</b> per halaman, geser ke kanan untuk menu ke-9 dst. Nyalakan/matikan, ubah nama, ikon/gambar & tujuan tiap menu.</div></div>' +
+      '<form class="f" data-kf>' + form([{ k: 'kg_judul', t: 'Judul di atas menu (opsional)', ph: 'Kosong = tanpa judul' }, { k: 'kg_gaya', t: 'Bentuk ikon', type: 'select', opts: [['kartu', 'Kotak membulat'], ['bulat', 'Lingkaran'], ['polos', 'Tanpa latar']] }], vals()) + '</form>' +
+      '<div class="kg-prev" data-kp></div><div class="list" data-kl></div>' +
+      '<div class="row mt12 wrap"><button class="btn btn-ghost" data-add>' + I('add') + 'Tambah menu</button><button class="btn btn-ghost" data-def>' + I('restart_alt') + 'Kembalikan bawaan</button><button class="btn btn-ink grow" data-save>' + I('save') + 'Simpan</button></div>', { title: 'Menu Kategori (ala Aplikasi)', lg: true });
+    const kl = o.querySelector('[data-kl]'), kp = o.querySelector('[data-kp]');
+    const tile = x => '<span class="kp-it' + (x.tampil === false ? ' off' : '') + '"><span class="kg-ic">' + (x.img ? '<img src="' + esc(img(x.img, 120)) + '" alt="">' : I(x.icon || 'apps', 'fill')) + '</span><small>' + esc(x.label) + '</small></span>';
+    const draw = () => {
+      const on = list.filter(x => x.tampil !== false);
+      kp.innerHTML = '<div class="muted tiny">Pratinjau halaman 1 (' + on.length + ' menu aktif' + (on.length > 8 ? ', ' + Math.ceil(on.length / 8) + ' halaman geser' : '') + ')</div><div class="kp-grid">' + on.slice(0, 8).map(tile).join('') + '</div>';
+      kl.innerHTML = list.map((x, i) => '<div class="li menu-row' + (x.tampil === false ? ' off' : '') + '"><span class="kg-ic sm">' + (x.img ? '<img src="' + esc(img(x.img, 80)) + '" alt="">' : I(x.icon || 'apps', 'fill')) + '</span><div class="grow"><b class="ell">' + esc(x.label) + '</b><div class="meta ell">' + esc(linkDesc(x)) + '</div></div>' +
+        '<div class="acts"><button class="icon-btn" data-u="' + i + '"' + (i ? '' : ' disabled') + ' aria-label="Naik">' + I('arrow_upward') + '</button><label class="switch"><input type="checkbox" data-t="' + i + '"' + (x.tampil !== false ? ' checked' : '') + ' aria-label="Tampilkan"><i></i></label><button class="icon-btn" data-e="' + i + '" aria-label="Ubah">' + I('edit') + '</button><button class="icon-btn danger" data-d="' + i + '" aria-label="Hapus">' + I('delete') + '</button></div></div>').join('');
+    };
+    kl.onclick = async e => { const u = e.target.closest('[data-u]'), ed = e.target.closest('[data-e]'), d = e.target.closest('[data-d]');
+      if (u) { const i = +u.dataset.u; [list[i - 1], list[i]] = [list[i], list[i - 1]]; draw(); }
+      if (ed) editMenu(Object.assign(list[+ed.dataset.e], { custom: 1, kg: 1 }), false, () => draw());
+      if (d) { if (await A.confirm('Hapus menu "' + list[+d.dataset.d].label + '"?', 'Hapus', true)) { list.splice(+d.dataset.d, 1); draw(); } } };
+    kl.onchange = e => { const t = e.target.closest('[data-t]'); if (t) { list[+t.dataset.t].tampil = t.checked; draw(); } };
+    o.querySelector('[data-add]').onclick = () => editMenu({ id: 'k' + Date.now().toString(36), icon: 'diamond', link: 'kat:' + (A.kategori()[0] || ''), tampil: true, custom: 1, kg: 1 }, true, x => { list.push(x); draw(); });
+    o.querySelector('[data-def]').onclick = async () => { if (await A.confirm('Kembalikan menu kategori ke bawaan?', 'Kembalikan')) { list = A.KG_DEF(); draw(); } };
+    o.querySelector('[data-save]').onclick = async e => {
+      const f = o.querySelector('[data-kf]'), d = read(f, [{ k: 'kg_judul' }, { k: 'kg_gaya' }]);
+      d.kg_items = JSON.stringify(list.map(x => ({ id: x.id, label: x.label, img: x.img || '', icon: x.icon || 'apps', link: x.link, tampil: x.tampil !== false })));
+      const r = await saveSet(d, e.currentTarget); if (r.success) { A.toast('Menu kategori disimpan'); o.close(); }
+    };
+    draw();
+  }
+
+  /* ======================= LUPA SANDI ADMIN (email) & HALAMAN RESET ======================= */
+  function lupaAdmin() {
+    const o = A.sheet('<form class="f" novalidate><p class="muted small" style="margin:0">Masukkan username (atau email akun). Tautan untuk membuat sandi baru dikirim ke <b>Gmail</b> akun tersebut. Superadmin tanpa email terdaftar menerima di Gmail pemilik Apps Script.</p>' +
+      '<div class="fld"><label>Username / email</label><input name="u" autocapitalize="none" autocomplete="username" required></div><div class="small" data-err style="color:var(--danger);min-height:16px"></div>' +
+      '<button class="btn btn-ink btn-block" data-go>' + I('mail') + 'Kirim tautan reset ke email</button></form>', { title: 'Lupa Sandi Dasbor' });
+    const f = o.querySelector('form');
+    f.onsubmit = async e => { e.preventDefault(); const go = f.querySelector('[data-go]'); busy(go, true, 'Mengirim…');
+      const r = await A.api('admin.lupa', { username: f.u.value.trim(), url: location.href.split('#')[0] }); busy(go, false);
+      if (!r.success) { f.querySelector('[data-err]').textContent = r.message; return; }
+      o.querySelector('.sheet').innerHTML = '<div class="center" style="padding:20px 8px"><span class="avatar-i" style="width:64px;height:64px;margin:0 auto 10px;background:var(--ok-soft);color:var(--ok)">' + I('mark_email_read') + '</span><h3 style="font:800 18px var(--f-head)">Periksa Email Anda</h3><p class="muted">' + esc(r.message) + '</p><button class="btn btn-ink btn-block mt12" data-x>Mengerti</button></div>';
+      o.querySelector('[data-x]').onclick = () => o.close(); };
+  }
+  async function renderReset(e, token) {
+    e.innerHTML = '<div class="login-wrap"><div class="card login-card"><div class="skel" style="height:220px"></div></div></div>';
+    const c = await A.api('admin.reset', { token, cek: true });
+    if (!c.success) { e.innerHTML = '<div class="login-wrap"><div class="card login-card center">' + I('link_off') + '<h2 style="font:800 20px var(--f-head)">Tautan Tidak Berlaku</h2><p class="muted">' + esc(c.message) + '</p><a class="btn btn-ink btn-block" href="#/">Ke halaman masuk</a></div></div>'; A.splash.selesai(300); return; }
+    e.innerHTML = '<div class="login-wrap"><form class="card login-card f"><div class="center">' + I('lock_reset') + '<h2 style="font:800 20px var(--f-head);margin-top:6px">Buat Sandi Baru</h2><p class="muted small">Akun <b>' + esc(c.data.username) + '</b> (' + esc(c.data.nama) + ')</p></div>' +
+      '<div class="fld"><label>Sandi baru</label><input name="baru" type="password" autocomplete="new-password" required minlength="8"><div class="hint">Minimal 8 karakter, berisi huruf dan angka.</div></div><div class="fld"><label>Ulangi sandi baru</label><input name="ulang" type="password" autocomplete="new-password" required></div>' +
+      '<div class="small" style="color:var(--danger);min-height:16px" data-err></div><button class="btn btn-ink btn-block" data-go>' + I('save') + 'Simpan Sandi Baru</button></form></div>';
+    A.splash.selesai(300);
+    const f = e.querySelector('form');
+    f.onsubmit = async ev => { ev.preventDefault(); const err = f.querySelector('[data-err]');
+      if (f.baru.value !== f.ulang.value) { err.textContent = 'Ulangi sandi baru tidak sama.'; return; }
+      const go = f.querySelector('[data-go]'); busy(go, true); const r = await A.api('admin.reset', { token, baru: f.baru.value }); busy(go, false);
+      if (!r.success) { err.textContent = r.message; return; }
+      A.toast(r.message); if (A.sound) A.sound('ok'); location.hash = '#/'; };
+  }
+
+  /* ======================= NOTIFIKASI DASBOR + SUARA ======================= */
+  let actx = null;
+  A.sound = function (jenis) {
+    if (Store.get('suara', 'ya') !== 'ya') return;
+    try {
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === 'suspended') actx.resume();
+      const nada = { notif: [[880, 0, .14], [1318.5, .13, .32]], ok: [[784, 0, .09], [1046.5, .07, .16]], err: [[300, 0, .16], [220, .14, .28]], klik: [[1200, 0, .04]] }[jenis] || [[880, 0, .15]];
+      nada.forEach(([f, t, d]) => { const o = actx.createOscillator(), g = actx.createGain(), t0 = actx.currentTime + t; o.type = 'sine'; o.frequency.value = f; g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(jenis === 'notif' ? .25 : jenis === 'klik' ? .05 : .09, t0 + .015); g.gain.exponentialRampToValueAtTime(.0001, t0 + d); o.connect(g).connect(actx.destination); o.start(t0); o.stop(t0 + d + .02); });
+      if (jenis === 'notif' && navigator.vibrate) navigator.vibrate([60, 40, 60]);
+    } catch (e) { }
+  };
+  // AudioContext di HP baru boleh berbunyi setelah ada sentuhan pertama
+  document.addEventListener('pointerdown', () => { try { if (!actx && Store.get('suara', 'ya') === 'ya') { actx = new (window.AudioContext || window.webkitAudioContext)(); } else if (actx && actx.state === 'suspended') actx.resume(); } catch (e) { } }, { once: true, capture: true });
+  let notifT = null, notifData = null;
+  document.addEventListener('click', e => { if (e.target.closest('[data-bell]')) { e.preventDefault(); A.notifPanel(); } });
+  async function cekNotif(awal) {
+    if (!A.token || !A.user || A.mustChange || document.hidden) return;
+    const r = await A.api('admin.notif'); if (!r.success) return;
+    notifData = r.data; const lastTs = Store.get('notif_ts', ''), baru = r.data.items.filter(x => String(x.waktu) > lastTs);
+    badgeNotif();
+    if (!awal && baru.length) { A.sound('notif'); A.toast('🔔 ' + baru[0].teks + (baru.length > 1 ? ' (+' + (baru.length - 1) + ' lainnya)' : ''), 'info'); }
+    if (r.data.ts && r.data.ts > lastTs) Store.set('notif_ts', r.data.ts);
+  }
+  function badgeNotif() {
+    const n = (notifData && notifData.n) || {};
+    document.querySelectorAll('[data-v]').forEach(a => { const k = a.dataset.v, c = n[k] || 0; let b = a.querySelector('.nbadge'); if (!c) { if (b) b.remove(); return; } if (!b) { b = document.createElement('span'); b.className = 'nbadge'; a.appendChild(b); } b.textContent = c > 99 ? '99+' : c; });
+    const bell = document.querySelector('[data-bell]'); if (bell) { const t = (notifData && notifData.total) || 0; bell.classList.toggle('has', !!t); bell.dataset.n = t > 99 ? '99+' : t; }
+  }
+  A.notifPanel = function () {
+    const it = (notifData && notifData.items) || [], on = Store.get('suara', 'ya') === 'ya';
+    const o = A.sheet('<div class="list">' + (it.length ? it.map(x => '<a class="li" href="#/' + x.ke + '" data-x><span class="avatar-i">' + I({ sewa: 'event_available', lelang: 'gavel', member: 'verified_user' }[x.jenis] || 'notifications') + '</span><div class="grow"><b class="ell">' + esc(x.teks) + '</b><div class="meta">' + esc(tgl(x.waktu)) + '</div></div>' + I('chevron_right') + '</a>').join('') : '<div class="empty">' + I('notifications_off') + '<p>Tidak ada yang perlu ditindaklanjuti.</p></div>') + '</div>' +
+      '<label class="row mt12" style="justify-content:space-between;padding:6px 2px"><span><b style="font:600 14px var(--f-body)">Suara notifikasi</b><div class="muted small">Bunyi + getar saat ada sewa, klaim lelang atau member baru</div></span><span class="switch"><input type="checkbox" data-snd' + (on ? ' checked' : '') + '><i></i></span></label>' +
+      '<button class="btn btn-ghost btn-block mt8" data-test>' + I('volume_up') + 'Tes suara</button>', { title: 'Notifikasi' });
+    o.querySelector('[data-snd]').onchange = e => { Store.set('suara', e.target.checked ? 'ya' : 'tidak'); if (e.target.checked) A.sound('ok'); };
+    o.querySelector('[data-test]').onclick = () => A.sound('notif');
+    o.querySelectorAll('a[data-x]').forEach(a => a.addEventListener('click', () => o.close()));
+  };
+  function mulaiNotif() { if (notifT) return; cekNotif(true); notifT = setInterval(() => cekNotif(false), 45000); document.addEventListener('visibilitychange', () => { if (!document.hidden) cekNotif(false); }); }
+
   /* ======================= TOKO EMAS: HARGA EMAS ======================= */
   const isoLocal = iso => { if (!iso) return ''; const d = new Date(iso); if (isNaN(d)) return ''; const z = n => String(n).padStart(2, '0'); return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate()) + 'T' + z(d.getHours()) + ':' + z(d.getMinutes()); };
   const localIso = v => { if (!v) return ''; const d = new Date(v); return isNaN(d) ? '' : d.toISOString(); };
@@ -656,13 +847,15 @@
     return r;
   }
   const SEC_INFO = {
-    profil: { i: 'account_circle', d: 'Logo, nama usaha, tagline, jam buka', spec: [{ k: 'nama_toko', t: 'Nama usaha' }, { k: 'tagline', t: 'Tagline' }, { k: 'logo_url', t: 'Logo (kosong = logo bawaan)', type: 'image', folder: 'Logo' }, { k: 'status_buka', t: 'Teks jam buka', hint: HIDE }] },
+    profil: { i: 'account_circle', d: 'Logo, nama usaha, tagline, jam buka', spec: [{ k: 'nama_toko', t: 'Nama usaha' }, { k: 'nama_pendek', t: 'Nama aplikasi di layar HP', hint: 'Nama di bawah ikon setelah dipasang. Maks. ±12 huruf agar tidak terpotong launcher HP.' }, { k: 'tagline', t: 'Tagline' }, { k: 'logo_url', t: 'Logo (kosong = logo bawaan)', type: 'image', folder: 'Logo' }, { k: 'status_buka', t: 'Teks jam buka', hint: HIDE }] },
     hero: { i: 'view_carousel', d: 'Foto promo bergeser otomatis', link: 'banner', linkT: 'Kelola Slide Hero' },
     promo: { i: 'redeem', d: 'Kartu promo / pengumuman', spec: [{ k: 'pengumuman_aktif', t: 'Tampilkan kartu promo', type: 'switch', yaTidak: 1 }, { k: 'pengumuman_label', t: 'Label kecil' }, { k: 'pengumuman_judul', t: 'Judul' }, { k: 'pengumuman_teks', t: 'Isi', type: 'textarea', rows: 2 }] },
     menu: { i: 'apps', d: 'Tombol menu link bio (Katalog, Rekening, menu buatan sendiri…)', spec: [{ k: 'menu_bayar_chip', t: 'Label hijau pada tombol Rekening & QRIS', hint: HIDE }], tab: 'menu', tabT: 'Kelola daftar menu (tab Menu)' },
     faq: { i: 'quiz', d: 'Tanya jawab yang sering ditanyakan', faq: 1 },
     harga_emas: { i: 'monitoring', d: 'Kartu harga emas hari ini (kadar pilihan)', spec: [{ k: 'harga_judul', t: 'Judul' }, { k: 'harga_sub', t: 'Keterangan halaman harga', type: 'textarea', rows: 2 }, { k: 'harga_bio_kadar', t: 'Kadar yang tampil di kartu (maks. 4)', hint: 'Pisahkan koma, mis. 24K,22K,18K,17K' }], link: 'emas', linkT: 'Atur harga emas' },
     lelang: { i: 'gavel', d: 'Kartu event lelang (tampil saat lelang dibuka)', link: 'lelang', linkT: 'Atur event lelang' },
+    kategori_grid: { i: 'apps', d: 'Menu kategori bergaya aplikasi — 4 kolom × 2 baris, bisa digeser', kg: 1 },
+    galeri: { i: 'photo_library', d: 'Cuplikan foto Galeri Custom & Pre-Order', spec: [{ k: 'galeri_bio_judul', t: 'Judul bagian' }, { k: 'galeri_bio_jumlah', t: 'Jumlah foto', type: 'select', opts: ['4', '8', '12'] }], link: 'galeri', linkT: 'Kelola foto galeri' },
     produk: { i: 'view_week', d: 'Slide produk acak + Lihat semua', spec: [{ k: 'produk_judul', t: 'Judul slide' }, { k: 'produk_jumlah', t: 'Jumlah produk', type: 'select', opts: ['4', '6', '8', '10', '12', '16', '20'] }, { k: 'label_promo', t: 'Label produk diskon' }, { k: 'teks_lihat_semua', t: 'Teks tombol "Lihat semua"' }] },
     sosmed: { i: 'public', d: 'Tautan sosial media', spec: [{ k: 'sosmed_judul', t: 'Judul bagian', hint: HIDE }, { k: 'sosmed_gaya', t: 'Gaya tampilan', type: 'select', opts: GAYA_SOS }], link: 'cabang', linkT: 'Kelola tautan sosial media' },
     cabang: { i: 'storefront', d: 'Lokasi toko & kontak WhatsApp', spec: [{ k: 'cabang_judul', t: 'Judul bagian' }, { k: 'cabang_jumlah', t: 'Jumlah lokasi di link bio', type: 'select', opts: ['1', '2', '3', '4', '6'] }, { k: 'teks_chat', t: 'Teks tombol chat', half: 1 }, { k: 'teks_maps', t: 'Teks tombol peta', half: 1 }], link: 'cabang', linkT: 'Kelola daftar lokasi' }
@@ -694,6 +887,7 @@
   function editSection(s) {
     const inf = SEC_INFO[s.id] || {};
     if (inf.faq) return editFaq(s);
+    if (inf.kg) return editKg();
     const o = A.sheet('<form class="f">' + (inf.spec ? form(inf.spec, vals()) : '') + (s.id === 'sosmed' ? '<div class="sos-prev" data-sp></div>' : '') +
       (inf.link ? '<a class="btn btn-ghost" href="#/' + inf.link + '" data-lk>' + I('open_in_new') + esc(inf.linkT) + '</a>' : '') +
       (inf.tab ? '<button type="button" class="btn btn-amber" data-tabgo="' + inf.tab + '">' + I('apps') + esc(inf.tabT) + '</button>' : '') +
@@ -731,7 +925,7 @@
     sv.onclick = async ev => { const r = await call('saveSections', { sections: secs.map(s => ({ id: s.id, tampil: s.tampil })) }, ev.currentTarget); if (r.success) { A.admin.sections = r.data.sections; setBoot(A.admin); refreshPublic(); sv.disabled = true; sv.classList.remove('btn-amber'); sv.classList.add('btn-ink'); } };
   }
   /* ======================= MENU (registri) + editor tombol header/navigasi ======================= */
-  const PAGES_OPT = [['katalog', 'Katalog produk'], ['bayar', 'Rekening & QRIS'], ['layanan', 'Layanan'], ['lokasi', 'Lokasi Toko'], ['bio', 'Beranda (link bio)']];
+  const PAGES_OPT = [['katalog', 'Katalog produk'], ['bayar', 'Rekening & QRIS'], ['layanan', 'Layanan'], ['lokasi', 'Lokasi Toko'], ['bio', 'Beranda (link bio)'], ['#/harga-emas', 'Harga Emas Hari Ini'], ['#/jual-emas', 'Jual Emas'], ['#/galeri/custom', 'Galeri Custom'], ['#/galeri/po', 'Galeri Pre-Order'], ['#/lelang', 'Lelang'], ['#/akun', 'Akun Member']];
   const BASE_IDS = ['katalog', 'bayar', 'layanan', 'lokasi'];
   function linkDesc(m) {
     const l = String(m.link || '');
@@ -751,6 +945,7 @@
       '<label class="fld"><span>Nama menu</span><input class="inp" name="label" required maxlength="60" value="' + esc(m.label || '') + '" placeholder="Contoh: iPhone"></label>' +
       '<label class="fld"><span>Keterangan kecil (opsional)</span><input class="inp" name="sub" maxlength="90" value="' + esc(m.sub || '') + '" placeholder="Contoh: Semua seri iPhone original"></label>' +
       '<div class="fld"><span>Ikon</span><input type="hidden" name="icon" value="' + esc(m.icon || 'apps') + '"><button type="button" class="btn btn-ghost btn-sm" data-iconf="icon">' + I(m.icon || 'apps') + '<span>Ganti ikon</span></button></div>' +
+      (m.kg ? form([{ k: 'img', t: 'Gambar ilustrasi (opsional — menggantikan ikon)', type: 'image', folder: 'Logo', hint: 'PNG transparan persegi ±160 px paling bagus. Kosongkan untuk memakai ikon.' }], m) : '') +
       (base ? '<div class="note">' + I('link') + '<div>Tujuan: <b>' + esc(linkDesc(m)) + '</b> (menu bawaan).</div></div>' :
         '<label class="fld"><span>Tujuan saat diklik</span><select class="inp" name="jenis">' + [['hal', 'Halaman di situs'], ['kat', 'Kategori katalog'], ['cari', 'Cari kata di katalog'], ['url', 'Link custom (#kata atau URL)']].map(x => '<option value="' + x[0] + '"' + (x[0] === j ? ' selected' : '') + '>' + x[1] + '</option>').join('') + '</select></label>' +
         '<label class="fld" data-j="hal"><span>Halaman</span><select class="inp" name="hal">' + PAGES_OPT.map(x => '<option value="' + x[0] + '"' + (x[0] === m.link ? ' selected' : '') + '>' + x[1] + '</option>').join('') + '</select></label>' +
@@ -759,7 +954,7 @@
         '<label class="fld" data-j="url"><span>Link custom</span><input class="inp" name="url" inputmode="url" autocapitalize="off" value="' + esc(j === 'url' ? m.link || '' : '') + '" placeholder="#iphone  atau  contohdomain.com/iphone"><small class="muted"><b>#kata</b> = buka katalog dengan pencarian kata itu. Alamat web (contohdomain.com/…) dibuka di tab baru.</small></label>') +
       '<div class="note" data-prev></div>' +
       '<div class="row"><button type="button" class="btn btn-ghost" data-x>Batal</button><button class="btn btn-ink grow" data-save>' + I('save') + (isNew ? 'Tambah Menu' : 'Simpan') + '</button></div></form>', { title: isNew ? 'Tambah Menu' : 'Ubah Menu' });
-    const f = o.querySelector('form'); bindIconFields(f);
+    const f = o.querySelector('form'); bindIconFields(f); if (m.kg) bindUploads(f);
     const linkNow = () => { if (base) return m.link; const jj = f.jenis.value; return jj === 'hal' ? f.hal.value : jj === 'kat' ? 'kat:' + f.kat.value : jj === 'cari' ? 'cari:' + f.cari.value.trim() : f.url.value.trim(); };
     const sync = () => { if (!base) f.querySelectorAll('[data-j]').forEach(x => { x.hidden = x.dataset.j !== f.jenis.value; }); const L = A.menuLink({ link: linkNow() }); f.querySelector('[data-prev]').innerHTML = I('visibility') + '<div>Saat diklik: <b>' + esc(linkDesc({ link: linkNow() })) + '</b><br><span class="muted small mono">' + esc(L.href) + '</span></div>'; };
     f.addEventListener('input', sync); f.addEventListener('change', sync); sync();
@@ -768,7 +963,7 @@
       const link = linkNow();
       if (!f.label.value.trim()) return A.toast('Nama menu wajib diisi', 'err');
       if (!base && (!link || link === 'cari:' || link === 'kat:')) return A.toast('Isi tujuan menu terlebih dahulu', 'err');
-      Object.assign(m, { label: f.label.value.trim(), sub: f.sub.value.trim(), icon: f.icon.value || 'apps', link });
+      Object.assign(m, { label: f.label.value.trim(), sub: f.sub.value.trim(), icon: f.icon.value || 'apps', link }); if (m.kg) m.img = (f.querySelector('[name="img"]') || {}).value || '';
       o.close(); done(m);
     };
   }
