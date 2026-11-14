@@ -19,7 +19,7 @@
     Store.set(AUTH, { token, user, mustChange: !!mustChange, exp: Date.now() + 11.5 * 3600e3 });
   }
   function logout(msg) {
-    Store.del(AUTH); A.token = ''; A.user = null; A.admin = null; shellBuilt = false; document.body.classList.remove('adm-shell');
+    Store.del(AUTH); A.token = ''; A.user = null; A.admin = null; shellBuilt = false; document.body.classList.remove('adm-shell'); { const tb = document.querySelector('.topbar [data-bell]'); if (tb) tb.hidden = true; }
     if (msg) A.toast(msg, 'info');
     if (A.cur === 'admin') render(el, '');
   }
@@ -45,7 +45,8 @@
     { id: 'produk', t: 'Produk & Katalog', i: 'diamond', all: 1 },
     { g: 'Toko Emas' },
     { id: 'emas', t: 'Harga Emas', i: 'monitoring', all: 1 },
-    { id: 'lelang', t: 'Lelang', i: 'gavel', all: 1 },
+    { id: 'bid', t: 'Lelang Live', i: 'gavel', all: 1 },
+    { id: 'lelang', t: 'Flash Sale', i: 'bolt', all: 1 },
     { id: 'galeri', t: 'Galeri Foto', i: 'photo_library', all: 1 },
     { id: 'watermark', t: 'Watermark Foto', i: 'branding_watermark', all: 1 },
     { id: 'sewa', t: 'Sewa Perhiasan', i: 'event_available', all: 1 },
@@ -193,7 +194,7 @@
   VIEWS.menu = function (m) {
     const groups = []; let cur = { g: 'Utama', it: [] }; groups.push(cur);
     MENU.forEach(x => { if (x.hide) return; if (x.g) { if (!isSA() && x.g !== 'Toko Emas') return; cur = { g: x.g, it: [] }; groups.push(cur); return; } if (x.all || isSA()) cur.it.push(x); });
-    const DESK = { beranda: 'Ringkasan & statistik', produk: 'Tambah, edit, stok & harga', emas: 'Harga per kadar, manual / otomatis', lelang: 'Event lelang & tukar kode', galeri: 'Custom, Pre-Order, Ready Stock, Perak & galeri baru', watermark: 'Logo/teks otomatis di setiap foto', sistem: 'Status API, kapasitas, backup & pemulihan', sewa: 'Pengajuan sewa member', member: 'Verifikasi KTP, nota & lelang', tampilan: 'Bagian, menu, warna & teks', banner: 'Foto promo bergeser', popup: 'Gambar pop-up saat dibuka', bayar: 'Rekening & QRIS', cabang: 'Outlet, WA & sosmed', layanan: 'Halaman layanan', notif: 'Blast & notifikasi WA', crm: 'Data kontak pelanggan', pengguna: 'Akun admin outlet', migrasi: 'Impor data lama', log: 'Riwayat perubahan', akun: 'Profil & ganti sandi' };
+    const DESK = { beranda: 'Ringkasan & statistik', produk: 'Tambah, edit, stok & harga', emas: 'Harga per kadar, manual / otomatis', bid: 'Sesi tawar live, pemenang & kode', lelang: 'Promo cepat, booking & tukar kode', galeri: 'Custom, Pre-Order, Ready Stock, Perak & galeri baru', watermark: 'Logo/teks otomatis di setiap foto', sistem: 'Status API, kapasitas, backup & pemulihan', sewa: 'Pengajuan sewa member', member: 'Verifikasi KTP, nota & lelang', tampilan: 'Bagian, menu, warna & teks', banner: 'Foto promo bergeser', popup: 'Gambar pop-up saat dibuka', bayar: 'Rekening & QRIS', cabang: 'Outlet, WA & sosmed', layanan: 'Halaman layanan', notif: 'Blast & notifikasi WA', crm: 'Data kontak pelanggan', pengguna: 'Akun admin outlet', migrasi: 'Impor data lama', log: 'Riwayat perubahan', akun: 'Profil & ganti sandi' };
     m.innerHTML = '<div class="adm-me"><span class="avatar-i">' + esc((A.user.nama || 'A').slice(0, 1).toUpperCase()) + '</span><div class="grow"><b class="ell">' + esc(A.user.nama) + '</b><span class="muted tiny">' + (isSA() ? 'Superadmin' : 'Admin ' + cabNama(A.user.cabang)) + '</span></div><a class="btn btn-ghost btn-sm" href="#/akun">' + I('person') + 'Akun</a></div>' +
       groups.filter(g => g.it.length).map(g => '<div class="adm-grp">' + esc(g.g) + '</div><div class="adm-tiles">' + g.it.map(x => '<a href="#/' + x.id + '">' + I(x.i) + '<b>' + esc(x.t) + '</b><small>' + esc(DESK[x.id] || '') + '</small></a>').join('') + '</div>').join('') +
       '<div class="adm-grp">Lainnya</div><div class="adm-tiles"><a href="' + SITUS() + '" target="_blank">' + I('open_in_new') + '<b>Lihat Link Bio</b><small>Buka halaman publik</small></a><button data-nk-license>' + I('key') + '<b>Lisensi</b><small>Aktivasi template</small></button>' +
@@ -827,13 +828,20 @@
   }
   function badgeNotif() {
     const n = (notifData && notifData.n) || {};
-    document.querySelectorAll('[data-v]').forEach(a => { const k = a.dataset.v, c = n[k] || 0; let b = a.querySelector('.nbadge'); if (!c) { if (b) b.remove(); return; } if (!b) { b = document.createElement('span'); b.className = 'nbadge'; a.appendChild(b); } b.textContent = c > 99 ? '99+' : c; });
-    const bell = document.querySelector('[data-bell]'); if (bell) { const t = (notifData && notifData.total) || 0; bell.classList.toggle('has', !!t); bell.dataset.n = t > 99 ? '99+' : t; }
+    // angka hanya di ikon lonceng notifikasi (bilah atas HP, header desktop, tombol "Notifikasi" di sidebar)
+    document.querySelectorAll('[data-v] .nbadge').forEach(b => b.remove());
+    const t = (notifData && notifData.total) || 0, lbl = t > 99 ? '99+' : String(t);
+    document.querySelectorAll('[data-bell]').forEach(bell => {
+      bell.classList.toggle('has', !!t); bell.dataset.n = t ? lbl : ''; bell.setAttribute('aria-label', t ? 'Notifikasi (' + lbl + ' baru)' : 'Notifikasi');
+      if (bell.classList.contains('bell-side')) { let b = bell.querySelector('.nb-in'); if (!t) { if (b) b.remove(); } else { if (!b) { b = document.createElement('span'); b.className = 'nb-in'; bell.appendChild(b); } b.textContent = lbl; } }
+    });
+    const tb = document.querySelector('.topbar [data-bell]'); if (tb) tb.hidden = !shellBuilt;
+    if (n && Object.keys(n).length) document.querySelectorAll('.side [data-v]').forEach(a => a.classList.toggle('ada', !!n[a.dataset.v]));
   }
   A.notifPanel = function () {
     const it = (notifData && notifData.items) || [], on = Store.get('suara', 'ya') === 'ya';
-    const o = A.sheet('<div class="list">' + (it.length ? it.map(x => '<a class="li" href="#/' + x.ke + '" data-x><span class="avatar-i">' + I({ sewa: 'event_available', lelang: 'gavel', member: 'verified_user' }[x.jenis] || 'notifications') + '</span><div class="grow"><b class="ell">' + esc(x.teks) + '</b><div class="meta">' + esc(tgl(x.waktu)) + '</div></div>' + I('chevron_right') + '</a>').join('') : '<div class="empty">' + I('notifications_off') + '<p>Tidak ada yang perlu ditindaklanjuti.</p></div>') + '</div>' +
-      '<label class="row mt12" style="justify-content:space-between;padding:6px 2px"><span><b style="font:600 14px var(--f-body)">Suara notifikasi</b><div class="muted small">Bunyi + getar saat ada sewa, klaim lelang atau member baru</div></span><span class="switch"><input type="checkbox" data-snd' + (on ? ' checked' : '') + '><i></i></span></label>' +
+    const o = A.sheet('<div class="list">' + (it.length ? it.map(x => '<a class="li" href="#/' + x.ke + '" data-x><span class="avatar-i">' + I({ sewa: 'event_available', lelang: 'bolt', bid: 'gavel', member: 'verified_user' }[x.jenis] || 'notifications') + '</span><div class="grow"><b class="ell">' + esc(x.teks) + '</b><div class="meta">' + esc(tgl(x.waktu)) + '</div></div>' + I('chevron_right') + '</a>').join('') : '<div class="empty">' + I('notifications_off') + '<p>Tidak ada yang perlu ditindaklanjuti.</p></div>') + '</div>' +
+      '<label class="row mt12" style="justify-content:space-between;padding:6px 2px"><span><b style="font:600 14px var(--f-body)">Suara notifikasi</b><div class="muted small">Bunyi + getar saat ada sewa, klaim Flash Sale, pemenang lelang atau member baru</div></span><span class="switch"><input type="checkbox" data-snd' + (on ? ' checked' : '') + '><i></i></span></label>' +
       '<button class="btn btn-ghost btn-block mt8" data-test>' + I('volume_up') + 'Tes suara</button>', { title: 'Notifikasi' });
     o.querySelector('[data-snd]').onchange = e => { Store.set('suara', e.target.checked ? 'ya' : 'tidak'); if (e.target.checked) A.sound('ok'); };
     o.querySelector('[data-test]').onclick = () => A.sound('notif');
@@ -925,16 +933,16 @@
     const s = vals(), sa = isSA(), P = (B().products || []).filter(p => p.lelang && (sa || p.cabang === A.user.cabang || p.cabang === 'keduanya'));
     const on = String(s.lelang_aktif).toUpperCase() === 'YA', now = Date.now(), mu = s.lelang_mulai ? new Date(s.lelang_mulai).getTime() : 0, se = s.lelang_selesai ? new Date(s.lelang_selesai).getTime() : 0;
     const st = !on ? ['OFF', ''] : (mu > now ? ['TERJADWAL', 'amber'] : (se && se <= now ? ['SELESAI', ''] : ['BERLANGSUNG', 'amber']));
-    m.innerHTML = head('Lelang', '<a class="btn btn-ghost btn-sm" href="' + SITUS() + '#/lelang" target="_blank">' + I('open_in_new') + 'Lihat halaman lelang</a>') +
-      '<div class="kpis"><div class="kpi ' + st[1] + '"><span>' + I('gavel') + esc(s.lelang_judul || 'Lelang') + '</span><b>' + st[0] + '</b><small>' + (se ? 'sampai ' + esc(tgl(s.lelang_selesai)) : 'tanpa batas waktu') + '</small></div><div class="kpi click" data-goprod><span>' + I('diamond') + 'Produk lelang</span><b>' + P.length + '</b><small>aktifkan dari form produk</small></div></div>' +
-      '<div class="panel"><div class="panel-h"><h3>Tukar kode lelang</h3></div><form class="row" data-tukar style="gap:8px"><input class="grow mono" name="kode" placeholder="LLG-XXXX-XXXX" autocapitalize="characters" style="text-transform:uppercase" aria-label="Kode lelang"><button class="btn btn-ink">' + I('qr_code_scanner') + 'Tukar</button></form><p class="muted small mt8">Cocokkan nama & KTP member sebelum menyerahkan barang.</p></div>' +
-      (sa ? '<div class="panel"><div class="panel-h"><h3>Event lelang</h3><div class="row wrap" style="gap:6px"><button class="btn btn-ghost btn-sm" data-pre="jumat">Jumat Berkah</button><button class="btn btn-ghost btn-sm" data-pre="sekarang">Buka 24 jam</button><button class="btn btn-ghost btn-sm" data-pre="tutup">Tutup</button></div></div><form class="f" data-ev></form></div>' : '') +
+    m.innerHTML = head('Flash Sale', '<a class="btn btn-ghost btn-sm" href="' + SITUS() + '#/flash-sale" target="_blank">' + I('open_in_new') + 'Lihat halaman Flash Sale</a>') +
+      '<div class="kpis"><div class="kpi ' + st[1] + '"><span>' + I('bolt') + esc(s.lelang_judul || 'Flash Sale') + '</span><b>' + st[0] + '</b><small>' + (se ? 'sampai ' + esc(tgl(s.lelang_selesai)) : 'tanpa batas waktu') + '</small></div><div class="kpi click" data-goprod><span>' + I('diamond') + 'Produk Flash Sale</span><b>' + P.length + '</b><small>aktifkan dari form produk</small></div></div>' +
+      '<div class="panel"><div class="panel-h"><h3>Tukar kode Flash Sale</h3></div><form class="row" data-tukar style="gap:8px"><input class="grow mono" name="kode" placeholder="LLG-XXXX-XXXX" autocapitalize="characters" style="text-transform:uppercase" aria-label="Kode Flash Sale"><button class="btn btn-ink">' + I('qr_code_scanner') + 'Tukar</button></form><p class="muted small mt8">Cocokkan nama & KTP member sebelum menyerahkan barang.</p></div>' +
+      (sa ? '<div class="panel"><div class="panel-h"><h3>Event Flash Sale</h3><div class="row wrap" style="gap:6px"><button class="btn btn-ghost btn-sm" data-pre="jumat">Jumat Berkah</button><button class="btn btn-ghost btn-sm" data-pre="sekarang">Buka 24 jam</button><button class="btn btn-ghost btn-sm" data-pre="tutup">Tutup</button></div></div><form class="f" data-ev></form></div>' : '') +
       '<div class="panel"><div class="panel-h"><h3>Klaim & kode</h3><div class="seg" data-kf>' + [['', 'Semua'], ['Belum ditukar', 'Belum ditukar'], ['Ditukar', 'Ditukar'], ['Batal', 'Batal']].map(x => '<button data-v="' + x[0] + '"' + (x[0] === klaimF ? ' class="on"' : '') + '>' + x[1] + '</button>').join('') + '</div></div><div class="list" data-kl><div class="skel" style="height:120px"></div></div></div>';
     const q = x => m.querySelector(x);
     q('[data-goprod]').onclick = () => A.go('produk');
-    const EV = [{ k: 'lelang_aktif', t: 'Halaman lelang aktif', type: 'switch', yaTidak: 1, hint: 'Matikan kapan saja untuk menutup lelang' }, { k: 'lelang_judul', t: 'Judul event' }, { k: 'lelang_sub', t: 'Keterangan singkat' },
+    const EV = [{ k: 'lelang_aktif', t: 'Flash Sale aktif', type: 'switch', yaTidak: 1, hint: 'Matikan kapan saja untuk menutup Flash Sale' }, { k: 'lelang_judul', t: 'Judul event' }, { k: 'lelang_sub', t: 'Keterangan singkat' },
       { k: 'lelang_mulai', t: 'Mulai', type: 'datetime-local', half: 1, hint: 'Kosong = langsung' }, { k: 'lelang_selesai', t: 'Selesai', type: 'datetime-local', half: 1, hint: 'Kosong = tanpa batas' },
-      { k: 'lelang_maks', t: 'Maks. produk per member', type: 'select', opts: ['1', '2', '3', '5'], half: 1 }, { k: 'lelang_batas_jam', t: 'Batas tukar di toko (jam)', type: 'number', half: 1, ph: '48' },
+      { k: 'lelang_maks', t: 'Maks. produk per member', type: 'select', opts: ['1', '2', '3', '5'], half: 1 }, { k: 'lelang_batas_jam', t: 'Masa booking / batas tukar (jam)', type: 'number', half: 1, ph: '3', hint: 'Selama masa ini barang berstatus Dipesan (Booked). Lewat batas → hangus, stok kembali.' },
       { k: 'lelang_syarat', t: 'Syarat (satu per baris)', type: 'textarea', rows: 5 },
       { sec: 'Syarat wajib yang dicek sistem' },
       { k: 'lelang_wajib_ktp', t: 'Wajib unggah KTP', type: 'switch', yaTidak: 1 }, { k: 'lelang_wajib_nota', t: 'Wajib bukti nota pembelian', type: 'switch', yaTidak: 1 },
@@ -943,20 +951,20 @@
     if (ev) {
       const v = Object.assign({}, s, { lelang_mulai: isoLocal(s.lelang_mulai), lelang_selesai: isoLocal(s.lelang_selesai) });
       ['lelang_wajib_ktp', 'lelang_wajib_nota', 'lelang_wajib_sosmed', 'lelang_wajib_verif'].forEach(k => { if (String(v[k]).toUpperCase() !== 'TIDAK') v[k] = 'YA'; });
-      ev.innerHTML = form(EV, v) + '<button class="btn btn-ink btn-block" data-go>' + I('save') + 'Simpan Event Lelang</button>';
+      ev.innerHTML = form(EV, v) + '<button class="btn btn-ink btn-block" data-go>' + I('save') + 'Simpan Flash Sale</button>';
       const put = (mu2, se2, on2) => { ev.querySelector('[name="lelang_mulai"]').value = mu2; ev.querySelector('[name="lelang_selesai"]').value = se2; ev.querySelector('[name="lelang_aktif"]').checked = on2; };
       m.querySelectorAll('[data-pre]').forEach(b => b.onclick = () => {
         const d = new Date(), p = b.dataset.pre;
-        if (p === 'tutup') { ev.querySelector('[name="lelang_aktif"]').checked = false; return A.toast('Tekan Simpan untuk menutup lelang', 'info'); }
-        if (p === 'sekarang') { put('', isoLocal(new Date(Date.now() + 864e5).toISOString()), true); ev.querySelector('[name="lelang_judul"]').value = ev.querySelector('[name="lelang_judul"]').value || 'Lelang Spesial'; }
-        if (p === 'jumat') { const add = (5 - d.getDay() + 7) % 7; const j = new Date(d.getFullYear(), d.getMonth(), d.getDate() + add, 8, 0); const j2 = new Date(j.getFullYear(), j.getMonth(), j.getDate(), 21, 0); put(isoLocal(j.toISOString()), isoLocal(j2.toISOString()), true); ev.querySelector('[name="lelang_judul"]').value = 'Lelang Jumat Berkah'; }
+        if (p === 'tutup') { ev.querySelector('[name="lelang_aktif"]').checked = false; return A.toast('Tekan Simpan untuk menutup Flash Sale', 'info'); }
+        if (p === 'sekarang') { put('', isoLocal(new Date(Date.now() + 864e5).toISOString()), true); ev.querySelector('[name="lelang_judul"]').value = ev.querySelector('[name="lelang_judul"]').value || 'Flash Sale Spesial'; }
+        if (p === 'jumat') { const add = (5 - d.getDay() + 7) % 7; const j = new Date(d.getFullYear(), d.getMonth(), d.getDate() + add, 8, 0); const j2 = new Date(j.getFullYear(), j.getMonth(), j.getDate(), 21, 0); put(isoLocal(j.toISOString()), isoLocal(j2.toISOString()), true); ev.querySelector('[name="lelang_judul"]').value = 'Flash Sale Jumat Berkah'; }
         A.toast('Waktu diisi — tekan Simpan', 'info');
       });
       ev.onsubmit = async e => {
         e.preventDefault(); const d = read(ev, EV);
         d.lelang_mulai = localIso(d.lelang_mulai); d.lelang_selesai = localIso(d.lelang_selesai);
         if (d.lelang_mulai && d.lelang_selesai && d.lelang_selesai <= d.lelang_mulai) return A.toast('Waktu selesai harus setelah waktu mulai', 'err');
-        const r = await saveSet(d, ev.querySelector('[data-go]')); if (r.success) { A.toast('Event lelang disimpan'); VIEWS.lelang(m); }
+        const r = await saveSet(d, ev.querySelector('[data-go]')); if (r.success) { A.toast('Flash Sale disimpan'); VIEWS.lelang(m); }
       };
     }
     q('[data-tukar]').onsubmit = async e => { e.preventDefault(); const k = e.target.kode.value.trim(); if (!k) return; const r = await call('lelang.tukar', { kode: k }, e.target.querySelector('button')); if (r.success) { e.target.kode.value = ''; loadKl(); A.sheet('<div class="center"><span class="big ok" style="display:inline-flex;width:64px;height:64px;border-radius:50%;background:var(--ok-soft);color:var(--ok);align-items:center;justify-content:center">' + I('check_circle', 'fill') + '</span><h3 style="font:800 18px var(--f-head);margin:8px 0">Kode valid — ditukar</h3><p><b>' + esc(r.data.produk_nama) + '</b><br>' + rp(r.data.harga) + '</p><p class="muted">Member: ' + esc(r.data.member_nama) + ' · ' + esc(hp08(r.data.member_hp)) + '</p></div>', { title: 'Tukar Kode', center: true }); } };
@@ -964,13 +972,104 @@
     let kl = Store.get('a:klaim', null);
     const drawKl = () => { const b = q('[data-kl]'); if (!b || !kl) return; const list = kl.filter(k => !klaimF || k.status === klaimF);
       b.innerHTML = list.length ? list.map(k => '<div class="li"><span class="avatar-i">' + I('confirmation_number') + '</span><div class="grow"><b class="ell">' + esc(k.produk_nama) + '</b><div class="meta"><span class="mono">' + esc(k.kode) + '</span><span>' + rp(k.harga) + '</span><span>' + esc(k.member_nama) + ' · ' + esc(hp08(k.member_hp)) + '</span>' + (isSA() ? '<span class="chip">' + I('location_on') + cabNama(k.cabang) + '</span>' : '') + '<span class="small muted">' + esc(tgl(k.dibuat)) + '</span></div></div>' +
-        '<div class="acts"><span class="chip ' + (k.status === 'Ditukar' ? 'chip-ok' : k.status === 'Batal' ? 'chip-no' : 'chip-amber') + '">' + esc(k.status) + '</span>' + (k.status === 'Belum ditukar' ? '<button class="btn btn-ink btn-sm" data-tk="' + esc(k.id) + '">Tukar</button><button class="icon-btn" data-bt="' + esc(k.id) + '" title="Batalkan" style="color:var(--danger)">' + I('block') + '</button>' : '') + '</div></div>').join('') : '<div class="empty">' + I('confirmation_number') + '<p>Belum ada klaim lelang.</p></div>'; };
+        '<div class="acts"><span class="chip ' + (k.status === 'Ditukar' ? 'chip-ok' : k.status === 'Batal' ? 'chip-no' : 'chip-amber') + '">' + esc(k.status) + '</span>' + (k.status === 'Belum ditukar' ? '<button class="btn btn-ink btn-sm" data-tk="' + esc(k.id) + '">Tukar</button><button class="icon-btn" data-bt="' + esc(k.id) + '" title="Batalkan" style="color:var(--danger)">' + I('block') + '</button>' : '') + '</div></div>').join('') : '<div class="empty">' + I('confirmation_number') + '<p>Belum ada klaim Flash Sale.</p></div>'; };
     const loadKl = () => A.api('lelang.klaim').then(r => { if (r.success) { kl = r.data; Store.set('a:klaim', kl); drawKl(); } else if (!kl) q('[data-kl]').innerHTML = '<div class="note red">' + esc(r.message) + '</div>'; });
     drawKl(); loadKl();
     q('[data-kl]').onclick = async e => { const t = e.target.closest('[data-tk],[data-bt]'); if (!t) return; const batal = !!t.dataset.bt, id = t.dataset.tk || t.dataset.bt;
       if (batal && !await A.confirm('Batalkan klaim ini? Kuota produk kembali tersedia.', 'Batalkan', true)) return;
       const r = await call('lelang.tukar', { id, status: batal ? 'Batal' : 'Ditukar' }, t); if (r.success) { loadKl(); if (batal) refreshPublic(); } };
   };
+
+
+  /* ======================= TOKO EMAS: LELANG LIVE (live bidding) ======================= */
+  const BST = { terjadwal: ['Terjadwal', 'chip-amber'], berlangsung: ['LIVE', 'chip-live'], tutup: ['Menutup…', 'chip-amber'], menunggu_bayar: ['Menunggu pelunasan', 'chip-amber'], dibayar: ['Lunas', 'chip-ok'], hangus: ['Hangus', 'chip-no'], tidak_laku: ['Tidak laku', 'chip-no'], batal: ['Dibatalkan', 'chip-no'] };
+  const bst = s => { const x = BST[s] || [s, '']; return '<span class="chip ' + x[1] + '">' + esc(x[0]) + '</span>'; };
+  let bidF = '';
+  VIEWS.bid = function (m) {
+    const sa = isSA(), s = vals();
+    m.innerHTML = head('Lelang Live', '<button class="btn btn-amber btn-sm" data-new>' + I('add') + 'Buat Sesi</button><a class="btn btn-ghost btn-sm" href="' + SITUS() + '#/lelang" target="_blank">' + I('open_in_new') + 'Halaman lelang</a>') +
+      '<div class="kpis" data-bk><div class="skel" style="height:96px"></div><div class="skel" style="height:96px"></div></div>' +
+      '<div class="panel"><div class="panel-h"><h3>' + I('qr_code_scanner') + 'Kasir: verifikasi kode pemenang</h3></div><form class="row" data-vk style="gap:8px"><input class="grow mono" name="kode" placeholder="LLG-XXXX-1" autocapitalize="characters" style="text-transform:uppercase" aria-label="Kode pemenang"><button class="btn btn-ink">' + I('search') + 'Cek</button></form><p class="muted small mt8">Cocokkan nama, nomor WhatsApp & KTP pemenang, lalu terima pelunasan dan tandai <b>Lunas</b>.</p></div>' +
+      '<div class="panel"><div class="panel-h"><h3>Sesi lelang</h3><div class="seg" data-bf>' + [['', 'Semua'], ['aktif', 'Aktif'], ['bayar', 'Menunggu bayar'], ['selesai', 'Selesai']].map(x => '<button data-v="' + x[0] + '"' + (x[0] === bidF ? ' class="on"' : '') + '>' + x[1] + '</button>').join('') + '</div></div><div class="list" data-bl><div class="skel" style="height:140px"></div></div></div>' +
+      (sa ? '<div class="panel"><div class="panel-h"><h3>Pengaturan & teks lelang</h3></div><form class="f" data-bs></form></div>' : '') +
+      '<div class="note mt12">' + I('info') + '<div><b>Alur:</b> buat sesi → member menawar (tawaran di ' + esc(s.bid_extend_menit || '2') + ' menit terakhir memperpanjang waktu) → sistem menutup otomatis & mengirim kode ke WhatsApp pemenang #1 → pemenang datang & melunasi sebelum batas → bila tidak datang: kode hangus, member diblokir dari lelang, lot otomatis ditawarkan ke pemenang cadangan #2 dengan kode baru.</div></div>';
+    const q = x => m.querySelector(x);
+    let list = Store.get('a:bid', null);
+    const grp = l => ['terjadwal', 'berlangsung', 'tutup'].indexOf(l.status_now) > -1 ? 'aktif' : l.status_now === 'menunggu_bayar' ? 'bayar' : 'selesai';
+    const draw = () => {
+      if (!list) return;
+      const n = { berlangsung: 0, terjadwal: 0, menunggu_bayar: 0, dibayar: 0 }; list.forEach(l => { if (n[l.status_now] !== undefined) n[l.status_now]++; });
+      q('[data-bk]').innerHTML = [['berlangsung', 'Sedang LIVE', 'sensors', 'amber'], ['terjadwal', 'Terjadwal', 'schedule', ''], ['menunggu_bayar', 'Menunggu pelunasan', 'hourglass_top', n.menunggu_bayar ? 'amber' : ''], ['dibayar', 'Terjual', 'paid', '']].map(k => '<div class="kpi ' + k[3] + '"><span>' + I(k[2]) + k[1] + '</span><b>' + n[k[0]] + '</b></div>').join('');
+      const L = list.filter(l => !bidF || grp(l) === bidF);
+      q('[data-bl]').innerHTML = L.length ? L.map(l => {
+        const rank = Number(l.peringkat) || 1, win = l.status_now === 'menunggu_bayar' || l.status_now === 'dibayar' || l.status_now === 'hangus';
+        const nm = rank === 2 ? l.p2_nama : l.p1_nama, hp = rank === 2 ? l.p2_hp : l.p1_hp, hr = rank === 2 ? l.p2_harga : l.p1_harga;
+        return '<div class="li bid-li"><span class="th" style="background-image:url(\'' + esc(img(l.foto, 200)) + '\')"></span><div class="grow"><b class="ell">' + esc(l.produk_nama) + '</b><div class="meta">' + bst(l.status_now) +
+          '<span>' + (Number(l.jumlah_bid) ? 'Tertinggi <b>' + rp(l.harga_now) + '</b> · ' + l.jumlah_bid + ' tawaran' : 'Awal ' + rp(l.harga_awal)) + '</span><span class="small muted">' + esc(tgl(l.mulai)) + ' → ' + esc(tgl(l.selesai)) + '</span>' + (isSA() ? '<span class="chip">' + cabNama(l.cabang) + '</span>' : '') + '</div>' +
+          (win && nm ? '<div class="bid-win mt8">' + I('emoji_events', 'fill') + '<div class="grow"><b>' + esc(nm) + '</b> <span class="muted small">(pemenang #' + rank + ')</span><div class="small"><a href="https://wa.me/' + esc(A.hp62(hp)) + '" target="_blank" rel="noopener">' + esc(hp08(hp)) + '</a> · ' + rp(hr) + ' · <span class="mono">' + esc(l.kode) + '</span>' + (l.status_now === 'menunggu_bayar' ? ' · batas ' + esc(tgl(l.batas_bayar)) : '') + '</div>' +
+            (rank === 1 && l.p2_nama ? '<div class="small muted">Cadangan #2: ' + esc(l.p2_nama) + ' · ' + rp(l.p2_harga) + '</div>' : '') + '</div></div>' : '') + (l.catatan ? '<div class="small muted mt8">' + esc(l.catatan) + '</div>' : '') + '</div>' +
+          '<div class="acts">' + (l.tawaran && l.tawaran.length ? '<button class="btn btn-ghost btn-sm" data-tw="' + esc(l.id) + '">' + I('list') + 'Tawaran</button>' : '') +
+          (l.status_now === 'menunggu_bayar' ? '<button class="btn btn-ghost btn-sm" data-lw="' + esc(l.id) + '" style="color:var(--danger)">' + I('person_off') + 'Tidak datang</button>' : '') +
+          (['terjadwal', 'berlangsung', 'tidak_laku', 'batal'].indexOf(l.status_now) > -1 ? '<button class="icon-btn" data-ed="' + esc(l.id) + '" title="Edit">' + I('edit') + '</button>' : '') +
+          (['terjadwal', 'berlangsung', 'tidak_laku', 'batal'].indexOf(l.status_now) > -1 ? '<button class="icon-btn" data-hp="' + esc(l.id) + '" title="Hapus / batalkan" style="color:var(--danger)">' + I('delete') + '</button>' : '') + '</div></div>';
+      }).join('') : '<div class="empty">' + I('gavel') + '<p>Belum ada sesi lelang. Tekan <b>Buat Sesi</b> untuk memulai.</p></div>';
+    };
+    const load = () => A.api('bid.list').then(r => { if (r.success) { list = r.data; Store.set('a:bid', list); draw(); } else if (!list) q('[data-bl]').innerHTML = '<div class="note red">' + esc(r.message) + '</div>'; });
+    draw(); load();
+    q('[data-bf]').onclick = e => { const b = e.target.closest('[data-v]'); if (!b) return; bidF = b.dataset.v; m.querySelectorAll('[data-bf] button').forEach(x => x.classList.toggle('on', x === b)); draw(); };
+    q('[data-new]').onclick = () => bidSheet(null, () => { load(); refreshPublic(); });
+    q('[data-bl]').onclick = async e => {
+      const t = e.target.closest('[data-tw],[data-lw],[data-ed],[data-hp]'); if (!t) return;
+      const l = list.find(x => x.id === (t.dataset.tw || t.dataset.lw || t.dataset.ed || t.dataset.hp)); if (!l) return;
+      if (t.dataset.tw) return A.sheet('<div class="list">' + l.tawaran.map((w, i) => '<div class="li"><span class="avatar-i">' + (i + 1) + '</span><div class="grow"><b>' + esc(w.member_nama) + '</b><div class="meta"><a href="https://wa.me/' + esc(A.hp62(w.member_hp)) + '" target="_blank" rel="noopener">' + esc(hp08(w.member_hp)) + '</a><span class="small muted">' + esc(tgl(w.waktu)) + '</span></div></div><b>' + rp(w.harga) + '</b></div>').join('') + '</div>', { title: 'Tawaran — ' + l.produk_nama });
+      if (t.dataset.ed) return bidSheet(l, () => { load(); refreshPublic(); });
+      if (t.dataset.lw) { if (!await A.confirm('Pemenang #' + (Number(l.peringkat) || 1) + ' dinyatakan TIDAK DATANG? Kode hangus, member diblokir dari lelang' + (Number(l.peringkat) === 1 && l.p2_id ? ', dan lot dialihkan ke cadangan #2 (kode baru dikirim via WhatsApp).' : '.'), 'Ya, tidak datang', true)) return; const r = await call('bid.lewati', { id: l.id }, t); if (r.success) { load(); refreshPublic(); } return; }
+      if (t.dataset.hp) { if (!await A.confirm(Number(l.jumlah_bid) ? 'Sesi sudah ada tawaran — sesi akan DIBATALKAN (riwayat disimpan). Lanjutkan?' : 'Hapus sesi lelang ini?', Number(l.jumlah_bid) ? 'Batalkan' : 'Hapus', true)) return; const r = await call('bid.hapus', { id: l.id }, t); if (r.success) { load(); refreshPublic(); } }
+    };
+    q('[data-vk]').onsubmit = async e => {
+      e.preventDefault(); const kode = e.target.kode.value.trim(); if (!kode) return;
+      const r = await call('bid.bayar', { kode, cek: true }, e.target.querySelector('button'), { silent: true }); if (!r.success) return;
+      const d = r.data, o = A.sheet('<div class="center"><span style="display:inline-flex;width:60px;height:60px;border-radius:50%;background:var(--amber-soft);color:var(--amber-ink);align-items:center;justify-content:center">' + I('emoji_events', 'fill') + '</span><h3 style="font:800 18px var(--f-head);margin:8px 0">' + esc(d.produk_nama) + '</h3>' +
+        '<div class="emas-break" style="text-align:left"><div><span>Pemenang (#' + d.peringkat + ')</span><b>' + esc(d.nama) + '</b></div><div><span>WhatsApp</span><b>' + esc(hp08(d.hp)) + '</b></div><div><span>Kode</span><b class="mono">' + esc(d.kode) + '</b></div><div><span>Batas kedatangan</span><b>' + esc(tgl(d.batas_bayar)) + '</b></div><div class="tot"><span>Harga final</span><b>' + rp(d.harga) + '</b></div></div>' +
+        '<p class="muted small mt8">Pastikan nama sesuai KTP & nomor WhatsApp cocok.</p><button class="btn btn-ink btn-block mt8" data-lunas>' + I('paid') + 'Terima Pelunasan & Tandai Lunas</button></div>', { title: 'Verifikasi Kode', center: true });
+      o.querySelector('[data-lunas]').onclick = async ev => { const r2 = await call('bid.bayar', { kode }, ev.currentTarget); if (r2.success) { o.close(); e.target.kode.value = ''; load(); refreshPublic(); } };
+    };
+    const bs = q('[data-bs]');
+    if (bs) {
+      const SP = [{ k: 'bid_judul', t: 'Judul halaman & banner' }, { k: 'bid_sub', t: 'Deskripsi singkat (tampil di banner beranda)', type: 'textarea', rows: 2 },
+        { k: 'bid_extend_menit', t: 'Auto-extend (menit)', type: 'select', opts: ['1', '2', '3', '5'], half: 1, hint: 'Tawaran di menit terakhir menambah waktu' }, { k: 'bid_batas_jam', t: 'Batas pelunasan (jam)', type: 'select', opts: ['1', '2', '3', '4', '6', '12', '24'], half: 1, hint: 'Setelah lelang ditutup' },
+        { k: 'bid_jam_tutup', t: 'Jam toko tutup', type: 'time', half: 1, hint: 'Batas maks. 1 jam sebelum toko tutup' },
+        { k: 'bid_syarat', t: 'Ketentuan lelang (satu per baris)', type: 'textarea', rows: 4 }];
+      bs.innerHTML = form(SP, s) + '<button class="btn btn-ink btn-block" data-go>' + I('save') + 'Simpan Pengaturan Lelang</button>';
+      bs.onsubmit = async e => { e.preventDefault(); const r = await saveSet(read(bs, SP), bs.querySelector('[data-go]')); if (r.success) A.toast('Pengaturan lelang disimpan'); };
+    }
+  };
+  function bidSheet(l, done) {
+    const sa = isSA(), P = (B().products || []).filter(p => p.aktif !== false && p.tipe !== 'sewa' && (sa || p.cabang === A.user.cabang || p.cabang === 'keduanya') && (p.status !== 'Habis' || (l && p.id === l.produk_id)));
+    const kunci = l && Number(l.jumlah_bid) > 0;
+    const o = A.sheet('<form class="f" novalidate>' +
+      '<div class="fld"><label>Produk yang dilelang *</label><select name="produk_id"' + (kunci ? ' disabled' : '') + '><option value="">— pilih produk —</option>' + P.map(p => '<option value="' + esc(p.id) + '"' + (l && l.produk_id === p.id ? ' selected' : '') + ' data-h="' + (Number(p.harga_tampil != null ? p.harga_tampil : p.harga) || 0) + '">' + esc(p.nama + (p.kadar ? ' · ' + p.kadar : '') + (Number(p.berat) ? ' · ' + p.berat + ' gr' : '') + ' — ' + rp(p.harga_tampil != null ? p.harga_tampil : p.harga)) + '</option>').join('') + '</select><div class="hint">Pilih dari katalog. Belum ada? Tambahkan dulu di menu Produk & Katalog (bisa produk khusus lelang).</div></div>' +
+      '<div class="f2"><div class="fld"><label>Harga awal *</label><input name="harga_awal" inputmode="numeric" value="' + esc(l ? String(l.harga_awal).replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '') + '"' + (kunci ? ' disabled' : '') + '></div><div class="fld"><label>Kelipatan tawaran *</label><select name="kelipatan">' + [10000, 25000, 50000, 100000, 250000, 500000].map(v => '<option value="' + v + '"' + ((l ? Number(l.kelipatan) : 50000) === v ? ' selected' : '') + '>' + rp(v) + '</option>').join('') + '</select></div></div>' +
+      '<div class="row wrap" style="gap:6px"><button type="button" class="btn btn-ghost btn-sm" data-pr="jumat">' + I('event') + 'Jumat Berkah 19:00–21:00</button><button type="button" class="btn btn-ghost btn-sm" data-pr="1j">' + I('bolt') + 'Mulai sekarang · 1 jam</button><button type="button" class="btn btn-ghost btn-sm" data-pr="30m">30 menit</button></div>' +
+      '<div class="f2 mt8"><div class="fld"><label>Mulai *</label><input type="datetime-local" name="mulai" value="' + esc(l ? isoLocal(l.mulai) : '') + '"></div><div class="fld"><label>Selesai *</label><input type="datetime-local" name="selesai" value="' + esc(l ? isoLocal(l.selesai) : '') + '"></div></div>' +
+      '<div class="fld"><label>Catatan (opsional, internal)</label><input name="catatan" value="' + esc((l && l.catatan) || '') + '"></div>' +
+      (kunci ? '<div class="note amber">' + I('lock') + '<div>Sudah ada tawaran: produk & harga awal dikunci. Waktu selesai masih bisa diubah.</div></div>' : '') +
+      '<button class="btn btn-ink btn-block mt8" data-go>' + I('save') + (l ? 'Simpan Perubahan' : 'Buat Sesi Lelang') + '</button></form>', { title: l ? 'Edit Sesi Lelang' : 'Buat Sesi Lelang Live', lg: true });
+    const f = o.querySelector('form');
+    f.produk_id.onchange = () => { const op = f.produk_id.selectedOptions[0], h = op && Number(op.dataset.h); if (h && !f.harga_awal.value) f.harga_awal.value = String(Math.round(h * .85 / 50000) * 50000).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); };
+    o.querySelectorAll('[data-pr]').forEach(b => b.onclick = () => {
+      const d = new Date(), p = b.dataset.pr; let a, z;
+      if (p === 'jumat') { const add = (5 - d.getDay() + 7) % 7; a = new Date(d.getFullYear(), d.getMonth(), d.getDate() + add, 19, 0); if (a < d) a.setDate(a.getDate() + 7); z = new Date(a.getTime() + 2 * 36e5); }
+      else { a = new Date(Math.floor(Date.now() / 6e4) * 6e4); z = new Date(a.getTime() + (p === '1j' ? 36e5 : 18e5)); }
+      f.mulai.value = isoLocal(a.toISOString()); f.selesai.value = isoLocal(z.toISOString());
+    });
+    f.onsubmit = async e => {
+      e.preventDefault();
+      const d = { id: l ? l.id : '', produk_id: l && kunci ? l.produk_id : f.produk_id.value, harga_awal: l && kunci ? l.harga_awal : Number(String(f.harga_awal.value).replace(/[^\d]/g, '')), kelipatan: Number(f.kelipatan.value), mulai: localIso(f.mulai.value), selesai: localIso(f.selesai.value), catatan: f.catatan.value };
+      if (!d.produk_id) return A.toast('Pilih produk', 'err'); if (!d.mulai || !d.selesai) return A.toast('Isi waktu mulai & selesai', 'err');
+      const r = await call('bid.simpan', d, f.querySelector('[data-go]')); if (r.success) { o.close(); done(r.data); }
+    };
+  }
 
   /* ======================= TOKO EMAS: SEWA ======================= */
   let sewaF = '';
@@ -996,11 +1095,11 @@
   const mchip = (lbl, s) => '<span class="chip ' + ((MST[s] || MST.belum)[1]) + '">' + lbl + ': ' + (MST[s] || MST.belum)[0] + '</span>';
   VIEWS.member = function (m) {
     m.innerHTML = head('Member') + '<div class="search" style="margin-top:0">' + I('search') + '<input type="search" placeholder="Cari nama / nomor HP…" value="' + esc(memQ) + '" data-q></div>' +
-      '<div class="pills mt12" data-mf>' + [['', 'Semua'], ['perlu', 'Perlu verifikasi'], ['disetujui', 'Lelang disetujui'], ['nonaktif', 'Nonaktif']].map(x => '<button class="pill' + (x[0] === memF ? ' on' : '') + '" data-v="' + x[0] + '">' + x[1] + '</button>').join('') + '</div><div class="list mt12" data-ml><div class="skel" style="height:140px"></div></div>';
+      '<div class="pills mt12" data-mf>' + [['', 'Semua'], ['perlu', 'Perlu verifikasi'], ['disetujui', 'Lelang disetujui'], ['hitam', 'Daftar hitam'], ['nonaktif', 'Nonaktif']].map(x => '<button class="pill' + (x[0] === memF ? ' on' : '') + '" data-v="' + x[0] + '">' + x[1] + '</button>').join('') + '</div><div class="list mt12" data-ml><div class="skel" style="height:140px"></div></div>';
     let list = Store.get('a:member', null);
     const draw = () => { const b = m.querySelector('[data-ml]'); if (!b || !list) return; const q = memQ.toLowerCase();
-      const L = list.filter(x => (!q || (x.nama + ' ' + x.hp).toLowerCase().indexOf(q) > -1) && (!memF || (memF === 'perlu' ? (x.ktp === 'menunggu' || x.nota === 'menunggu' || x.lelang === 'menunggu') : memF === 'disetujui' ? x.lelang === 'disetujui' : !x.aktif)));
-      b.innerHTML = (L.length ? L.map(x => '<button class="li' + (x.aktif ? '' : ' off') + '" data-id="' + esc(x.id) + '" style="width:100%;text-align:left"><span class="avatar-i">' + esc((x.nama || '?').slice(0, 1).toUpperCase()) + '</span><div class="grow"><b class="ell">' + esc(x.nama) + '</b><div class="meta"><span>' + esc(hp08(x.hp)) + '</span>' + mchip('KTP', x.ktp) + mchip('Nota', x.nota) + mchip('Lelang', x.lelang) + (x.ikut_sosmed && x.ig ? '<span class="chip chip-ok">IG ' + esc(x.ig) + '</span>' : '') + '</div></div>' + I('chevron_right') + '</button>').join('') : '<div class="empty">' + I('group') + '<p>Belum ada member.</p></div>') + '<p class="muted small center">' + L.length + ' dari ' + list.length + ' member</p>'; };
+      const L = list.filter(x => (!q || (x.nama + ' ' + x.hp).toLowerCase().indexOf(q) > -1) && (!memF || (memF === 'perlu' ? (x.ktp === 'menunggu' || x.nota === 'menunggu' || x.lelang === 'menunggu') : memF === 'disetujui' ? x.lelang === 'disetujui' : memF === 'hitam' ? !!x.blacklist : !x.aktif)));
+      b.innerHTML = (L.length ? L.map(x => '<button class="li' + (x.aktif ? '' : ' off') + '" data-id="' + esc(x.id) + '" style="width:100%;text-align:left"><span class="avatar-i">' + esc((x.nama || '?').slice(0, 1).toUpperCase()) + '</span><div class="grow"><b class="ell">' + esc(x.nama) + '</b><div class="meta"><span>' + esc(hp08(x.hp)) + '</span>' + mchip('KTP', x.ktp) + mchip('Nota', x.nota) + mchip('Lelang', x.lelang) + (x.blacklist ? '<span class="chip chip-no">' + I('block') + 'Daftar hitam</span>' : '') + (x.ikut_sosmed && x.ig ? '<span class="chip chip-ok">IG ' + esc(x.ig) + '</span>' : '') + '</div></div>' + I('chevron_right') + '</button>').join('') : '<div class="empty">' + I('group') + '<p>Belum ada member.</p></div>') + '<p class="muted small center">' + L.length + ' dari ' + list.length + ' member</p>'; };
     draw();
     const load = () => A.api('member.list').then(r => { if (r.success) { list = r.data; Store.set('a:member', list); draw(); } else if (!list) m.querySelector('[data-ml]').innerHTML = '<div class="note red">' + esc(r.message) + '</div>'; });
     load();
@@ -1017,6 +1116,7 @@
       '<div class="f2"><div class="fld"><label>Status KTP</label>' + sel('ktp', x.ktp, DOC) + '</div><div class="fld"><label>Status nota</label>' + sel('nota', x.nota, DOC) + '</div></div>' +
       '<div class="fld"><label>Izin ikut lelang</label>' + sel('lelang', x.lelang, [['belum', 'Belum'], ['menunggu', 'Menunggu'], ['disetujui', 'Disetujui'], ['ditolak', 'Ditolak']]) + '</div>' +
       '<div class="fld"><label>Catatan untuk member</label><input name="catatan" value="' + esc(x.catatan || '') + '" placeholder="mis. Foto KTP buram, mohon unggah ulang"></div>' +
+      '<label class="row" style="justify-content:space-between;padding:6px 0"><span><b style="font:600 14px var(--f-body);color:var(--danger)">Daftar hitam lelang</b><div class="muted small">Otomatis aktif bila pemenang tidak menebus. Matikan untuk memberi kesempatan lagi.</div></span><span class="switch"><input type="checkbox" name="blacklist"' + (x.blacklist ? ' checked' : '') + '><i></i></span></label>' +
       '<label class="row" style="justify-content:space-between;padding:6px 0"><b style="font:600 14px var(--f-body)">Akun aktif</b><span class="switch"><input type="checkbox" name="aktif"' + (x.aktif ? ' checked' : '') + '><i></i></span></label>' +
       '<div class="row mt8 wrap"><button type="button" class="btn btn-ghost" data-rs>' + I('lock_reset') + 'Reset sandi</button><button class="btn btn-ink grow" data-go>' + I('save') + 'Simpan</button></div>' +
       '<button type="button" class="btn btn-soft btn-block mt8" data-ok>' + I('verified') + 'Setujui semua (KTP, nota & lelang)</button></form>', { title: 'Verifikasi Member', lg: true });
@@ -1026,7 +1126,7 @@
       box.innerHTML = '<img src="data:' + esc(r.data.mime) + ';base64,' + r.data.base64 + '" alt="' + j + '" style="width:100%;border-radius:12px;border:1px solid var(--line)">'; });
     f.querySelector('[data-ok]').onclick = () => { ['ktp', 'nota'].forEach(n => f[n].value = 'terverifikasi'); f.lelang.value = 'disetujui'; f.catatan.value = ''; f.requestSubmit(); };
     f.querySelector('[data-rs]').onclick = async e => { if (!await A.confirm('Buat sandi sementara untuk ' + x.nama + '?', 'Reset')) return; const r = await call('member.reset', { id: x.id }, e.currentTarget); if (r.success && r.data.sandi) A.sheet('<div class="center"><p>Sandi sementara untuk <b>' + esc(x.nama) + '</b>:</p><div class="kode mono">' + esc(r.data.sandi) + '</div><p class="muted small">WhatsApp otomatis belum aktif — sampaikan langsung ke member. Member wajib menggantinya setelah masuk.</p></div>', { title: 'Sandi Sementara', center: true }); };
-    f.onsubmit = async e => { e.preventDefault(); const r = await call('member.verif', { id: x.id, ktp: f.ktp.value, nota: f.nota.value, lelang: f.lelang.value, catatan: f.catatan.value, aktif: f.aktif.checked }, f.querySelector('[data-go]')); if (r.success) { done(r.data); o.close(); } };
+    f.onsubmit = async e => { e.preventDefault(); const r = await call('member.verif', { id: x.id, ktp: f.ktp.value, nota: f.nota.value, lelang: f.lelang.value, catatan: f.catatan.value, aktif: f.aktif.checked, blacklist: f.blacklist.checked }, f.querySelector('[data-go]')); if (r.success) { done(r.data); o.close(); } };
   }
 
   /* ======================= TAMPILAN: Bagian · Header & Navigasi · Warna & Tema · Teks & Label ======================= */
@@ -1045,7 +1145,7 @@
     menu: { i: 'apps', d: 'Tombol menu link bio (Katalog, Rekening, menu buatan sendiri…)', spec: [{ k: 'menu_bayar_chip', t: 'Label hijau pada tombol Rekening & QRIS', hint: HIDE }], tab: 'menu', tabT: 'Kelola daftar menu (tab Menu)' },
     faq: { i: 'quiz', d: 'Tanya jawab yang sering ditanyakan', faq: 1 },
     harga_emas: { i: 'monitoring', d: 'Kartu harga emas hari ini (kadar pilihan)', spec: [{ k: 'harga_judul', t: 'Judul' }, { k: 'harga_sub', t: 'Keterangan halaman harga', type: 'textarea', rows: 2 }, { k: 'harga_bio_kadar', t: 'Kadar yang tampil di kartu (maks. 4)', hint: 'Pisahkan koma, mis. 24K,22K,18K,17K' }], link: 'emas', linkT: 'Atur harga emas' },
-    lelang: { i: 'gavel', d: 'Kartu event lelang (tampil saat lelang dibuka)', link: 'lelang', linkT: 'Atur event lelang' },
+    lelang: { i: 'gavel', d: 'Banner event Lelang Live & Flash Sale (tampil otomatis saat ada event)', link: 'bid', linkT: 'Atur Lelang Live' },
     kategori_grid: { i: 'apps', d: 'Menu kategori bergaya aplikasi — 4 kolom × 2 baris, bisa digeser', kg: 1 },
     galeri: { i: 'photo_library', d: 'Cuplikan foto semua galeri (acak, efek berjalan)', spec: [{ k: 'galeri_bio_judul', t: 'Judul bagian' },
       { k: 'galeri_bio_efek', t: 'Efek tampilan', type: 'select', opts: [['jalan', 'Berjalan (2 baris bergeser)'], ['muncul', 'Grid + efek muncul'], ['diam', 'Grid diam']], half: 1 }, { k: 'galeri_bio_jumlah', t: 'Jumlah foto', type: 'select', opts: ['4', '8', '12', '16'], half: 1 },

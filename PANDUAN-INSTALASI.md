@@ -217,11 +217,21 @@ Semua halaman ini juga ada sebagai **menu** & **navigasi bawah** dan bisa dipind
 - Foto KTP & nota disimpan **privat** di Drive (tidak dibagikan publik). Hanya superadmin yang bisa melihatnya lewat **Member**.
 - **Member → Setujui semua** memverifikasi KTP, nota & izin lelang sekaligus.
 
-### Lelang (dasbor → **Lelang**)
-1. Atur judul, mulai/selesai (tombol cepat **Jumat Berkah**, **Buka 24 jam**, **Tutup**), maks. produk per member, batas tukar (jam), syarat (satu per baris), serta syarat wajib yang dicek sistem: KTP, nota, sosmed, persetujuan admin.
-2. Produk ikut lelang lewat form produk: **Tampilkan di halaman Lelang**, isi **harga lelang** dan **kuota**. Admin cabang bisa menambahkan produk lelang cabangnya sendiri.
-3. Saat lelang tidak aktif, menu & kartu lelang otomatis hilang dari beranda.
-4. Di toko, ketik kode member di **Tukar kode lelang** (cocokkan KTP). Kode hanya bisa ditukar sekali. **Batalkan** mengembalikan kuota.
+### Flash Sale (dasbor → **Flash Sale**)
+Fitur "lelang" lama kini bernama **Flash Sale** (halaman `#/flash-sale`): harga spesial langsung ambil, tanpa tawar.
+1. Atur judul, mulai/selesai (tombol cepat **Jumat Berkah**, **Buka 24 jam**, **Tutup**), maks. produk per member, **masa booking (jam, bawaan 3)**, syarat, serta syarat wajib yang dicek sistem: KTP, nota, sosmed, persetujuan admin.
+2. Produk ikut lewat form produk: **Tampilkan di halaman Flash Sale**, isi **harga promo** dan **kuota**.
+3. **Penguncian stok otomatis:** begitu member menekan **Ambil Promo**, stok langsung berstatus **Dipesan (Booked)** dan tidak bisa diambil orang lain selama masa booking. Kode tidak ditukar sampai batas → otomatis **Hangus** dan stok kembali tersedia.
+4. Di toko, ketik kode di **Tukar kode Flash Sale** (cocokkan KTP). **Batalkan** mengembalikan kuota.
+
+### Lelang Live / tawar langsung (dasbor → **Lelang Live**)
+**A. Persiapan** — tekan **Buat Sesi**, pilih produk dari katalog (boleh produk khusus lelang), isi **harga awal** & **kelipatan tawaran**, atur waktu (tombol cepat **Jumat Berkah 19:00–21:00**, **Mulai sekarang · 1 jam**). Superadmin mengatur judul/deskripsi banner, **auto-extend** (menit), **batas pelunasan** (jam), **jam toko tutup**, dan ketentuan.
+**B. Pendaftaran & verifikasi** — penawar wajib member yang memenuhi syarat (sama dengan Flash Sale). Tombol tawar baru aktif setelah member mencentang **persetujuan komitmen** (bersedia datang & melunasi).
+**C. Live bidding** — member memilih tawaran (+1×, +2×, +5× kelipatan). Halaman memperbarui harga tertinggi tiap ±4 detik dan menampilkan nama tersamar (mis. *Rina P. – Rp7.250.000*). Tawaran di menit-menit terakhir **memperpanjang waktu** (anti tawar detik terakhir). Penawar yang disalip mendapat pemberitahuan di layar.
+**D. Pemenang & kode** — saat waktu habis sistem menutup otomatis (pemicu `pekerjaLatar` tiap 1 menit — jalankan **`pasangTrigger()`** sekali), menetapkan **Peringkat 1** + **cadangan Peringkat 2**, membuat kode unik `LLG-XXXX-1`, dan mengirimnya lewat WhatsApp (bila Fonnte aktif) + tampil di halaman lot & menu Akun (dengan QR) beserta harga final & batas kedatangan.
+**E. Pelunasan di toko** — batas = *sekarang + batas pelunasan*, maksimal 1 jam sebelum toko tutup. Kasir: dasbor → Lelang Live → **Kasir: verifikasi kode pemenang** → cek nama/WA/KTP → **Tandai Lunas** (produk otomatis Habis). Pemenang tidak datang (lewat batas, atau admin menekan **Tidak datang**) → kode hangus, akun masuk **daftar hitam lelang**, dan lot otomatis ditawarkan ke **Peringkat 2** dengan kode baru (`-2`) via WhatsApp. Daftar hitam bisa dibuka lagi di dasbor → Member.
+
+Banner **Lelang / Event** di beranda menampilkan kartu Lelang Live (LIVE/segera, foto, harga tertinggi, hitung mundur, tombol **Ikut Tawar**) dan kartu Flash Sale (foto produk, sisa stok, hemat, hitung mundur, tombol **Ambil Promo**) — masing-masing hanya tampil saat ada event.
 
 ### Sewa perhiasan pengantin
 Produk dengan **Jenis produk = Disewakan** menampilkan tombol **Sewa Sekarang**:
@@ -240,6 +250,8 @@ Di bawah slide hero ada **menu kategori bergaya aplikasi HP**: 4 kolom × 2 bari
 Dua galeri foto **tanpa judul, deskripsi, atau harga**:
 - **Galeri Custom** (`#/galeri/custom`) berisi contoh pesanan dan model custom: cincin nama, liontin nama, cincin kawin, dll.
 - **Galeri Pre-Order** (`#/galeri/po`) berisi model baru atau perhiasan jadi yang tidak ada di toko tetapi bisa dipesan.
+
+**Tampilan di HP (v4):** tab galeri bisa digeser (tidak terpotong walau galeri lebih dari 3), tombol **Filter** (kategori + urutan Terbaru/Terlama/Acak), dan satu tombol **Tampilan** yang baru menampilkan pilihan tata letak *yang Anda aktifkan* saat diklik (atur di Tampilan → Galeri → `galeri_layouts`).
 
 **Unggah foto** (dasbor → **Galeri Custom & PO**):
 1. Pilih tab galeri.
@@ -301,6 +313,8 @@ Link situs yang ditempel di WhatsApp/Facebook menampilkan **gambar sampul** `ass
 - Ganti gambar sampul dengan menimpa `assets/og-cover.jpg` (1200×630 px).
 
 ### Notifikasi & suara di dasbor
+Angka notifikasi hanya tampil di **ikon lonceng** (bilah atas HP, tombol **Notifikasi** di header desktop, dan tombol Notifikasi di sidebar). Menu yang punya tugas ditandai titik merah kecil.
+
 - Dasbor memeriksa setiap ±45 detik (dan saat dasbor dibuka kembali) apakah ada:
   - pengajuan **sewa** baru;
   - **klaim lelang** yang belum ditukar;
@@ -424,6 +438,12 @@ Catatan Blogger:
 1. Disarankan proyek Apps Script & spreadsheet **baru**: tempel kelima berkas `.gs` (termasuk **`Emas.gs` baru**), jalankan `setupAplikasi()`. Paket toko emas terpasang otomatis.
 2. Memakai spreadsheet lama: tempel kelima berkas `.gs`, jalankan `setupAplikasi()` (menambah sheet Kadar, HargaLog, Member, Sewa, LelangKlaim & kolom produk baru) lalu **`gantiKeDataEmas()`**.
 3. Deploy **Versi baru**, unggah isi ZIP ke GitHub (tetap pakai `js/config.js` lama yang berisi URL), push. Blogger: pasang `tema-tokoemas.xml`.
+
+**Toko Emas v4** (Lelang Live, Flash Sale dengan booking, banner event baru, galeri rapi di HP, notifikasi di lonceng):
+1. Tempel ulang **`Kode.gs`**, **`Emas.gs`** dan **`Notifikasi.gs`**, jalankan **`setupAplikasi()`** (menambah sheet **LelangLive** & **Tawaran**, kolom `blacklist` di Member), lalu Deploy → **Versi baru**.
+2. Jalankan **`pasangTrigger()`** sekali (bila belum) agar lelang ditutup & pemenang dikirimi kode otomatis.
+3. Unggah isi ZIP baru ke GitHub (pertahankan `js/config.js` Anda). Blogger: pasang tema baru (`?v=13`). Menu lama **Lelang** di link bio kini mengarah ke **Lelang Live**; Flash Sale punya menu sendiri (Tampilan → Menu, bisa diaktifkan).
+4. Teks halaman harga: bila Anda pernah mengubah keterangan harga, buka Tampilan → Harga Emas dan hapus tulisan "di Emas Kota Bali" (sistem juga menyembunyikannya otomatis).
 
 **Toko Emas v3** (watermark otomatis, Favorit, galeri Ready Stock/Perak/baru, menu Backend & Database, kartu lelang ringkas):
 1. Tempel ulang **`Kode.gs`** dan **`Emas.gs`**, jalankan **`setupAplikasi()`** (menambah kolom `wm` di Produk), lalu Deploy → **Versi baru**.

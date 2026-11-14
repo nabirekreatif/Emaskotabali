@@ -69,7 +69,7 @@
     { id: 'tema', label: 'Mode gelap', icon: 'dark_mode', link: 'aksi:tema', sys: 1 }, { id: 'share', label: 'Bagikan', icon: 'share', link: 'aksi:share', sys: 1 },
     { id: 'keranjang', label: 'Pesanan', icon: 'shopping_bag', link: 'keranjang', sys: 1 },
     { id: 'harga', label: 'Harga Emas Hari Ini', icon: 'monitoring', link: '#/harga-emas', sys: 1 }, { id: 'jualemas', label: 'Jual Emas (Buyback)', icon: 'currency_exchange', link: '#/jual-emas', sys: 1 },
-    { id: 'lelang', label: 'Lelang Spesial Member', icon: 'gavel', link: '#/lelang', sys: 1 }, { id: 'akun', label: 'Akun Member', icon: 'account_circle', link: '#/akun', sys: 1 },
+    { id: 'lelang', label: 'Lelang Live', icon: 'gavel', link: '#/lelang', sys: 1 }, { id: 'flash', label: 'Flash Sale', icon: 'bolt', link: '#/flash-sale', sys: 1 }, { id: 'akun', label: 'Akun Member', icon: 'account_circle', link: '#/akun', sys: 1 },
     { id: 'galeri', label: 'Galeri Pesanan Custom', icon: 'photo_library', link: '#/galeri/custom', sys: 1 }, { id: 'galeripo', label: 'Galeri Pre-Order', icon: 'collections', link: '#/galeri/po', sys: 1 },
     { id: 'favorit', label: 'Favorit Saya', icon: 'favorite', link: '#/favorit', sys: 1 }];
   const HDR_DEF = [{ id: 'install', tampil: true }, { id: 'cs', tampil: true }, { id: 'tema', tampil: false }];
@@ -79,7 +79,7 @@
     { q: 'Pembayaran bisa lewat apa saja?', a: 'Tunai, transfer bank, dan QRIS resmi. Lihat menu Rekening & QRIS — pastikan selalu atas nama toko kami.' }];
   const NAV_DEF = [{ id: 'bio', label: 'Beranda', icon: 'home', tampil: true }, { id: 'katalog', label: 'Katalog', icon: 'diamond', tampil: true },
     { id: 'harga', label: 'Harga', icon: 'monitoring', tampil: true }, { id: 'favorit', label: 'Favorit', icon: 'favorite', tampil: true },
-    { id: 'akun', label: 'Akun', icon: 'account_circle', tampil: true }, { id: 'lelang', label: 'Lelang', icon: 'gavel', tampil: false }, { id: 'jualemas', label: 'Jual Emas', icon: 'currency_exchange', tampil: false },
+    { id: 'akun', label: 'Akun', icon: 'account_circle', tampil: true }, { id: 'lelang', label: 'Lelang', icon: 'gavel', tampil: false }, { id: 'flash', label: 'Flash Sale', icon: 'bolt', tampil: false }, { id: 'jualemas', label: 'Jual Emas', icon: 'currency_exchange', tampil: false },
     { id: 'lokasi', label: 'Toko', icon: 'storefront', tampil: false }, { id: 'keranjang', label: 'Pesanan', icon: 'shopping_bag', tampil: false },
     { id: 'layanan', label: 'Layanan', icon: 'build_circle', tampil: false }, { id: 'bayar', label: 'Bayar', icon: 'account_balance_wallet', tampil: false },
     { id: 'menu', label: 'Lainnya', icon: 'menu', tampil: false }];
@@ -106,7 +106,7 @@
     warna_garis: '#EDE4D6', warna_harga: '#8A6420', warna_wa: '#25D366', warna_sosmed: '#1C1712', warna_header: '#FFFFFF',
     keranjang_aktif: 'TIDAK', kartu_badge: 'YA', tombol_tambah: 'Tambah', keranjang_judul: 'Pesanan Saya', keranjang_jenis: 'Makan di tempat, Bawa pulang, Diantar',
     keranjang_catatan: 'Ongkir pesan antar dihitung admin sesuai jarak. Pembayaran dikonfirmasi lewat WhatsApp.',
-    harga_judul: 'Harga Emas Hari Ini', harga_sub: 'Harga jual & buyback per gram', harga_bio_kadar: '24K, 22K, 18K, 17K',
+    harga_judul: 'Harga Emas Hari Ini', harga_sub: 'Harga jual & buyback per gram — acuan harga hari ini', harga_bio_kadar: '24K, 22K, 18K, 17K',
     kg_judul: '', kg_gaya: 'kartu',
     galeri_custom_judul: 'Galeri Pesanan Custom', galeri_custom_sub: 'Contoh perhiasan custom & pesanan pelanggan kami. Pilih model, lalu tanyakan lewat WhatsApp.',
     galeri_po_judul: 'Galeri Pre-Order', galeri_po_sub: 'Model perhiasan terbaru yang belum ada di toko — bisa dipesan (PO).',
@@ -118,6 +118,9 @@
     jual_poin: 'Emas perhiasan & logam mulia\nEmas lama, patah & rusak\nEmas tanpa surat\nDitimbang & dicek kadar di depan Anda\nDibayar tunai atau transfer saat itu juga',
     jual_catatan: 'Harga di atas adalah acuan awal per gram. Nilai akhir ditentukan setelah pengecekan kadar, berat & kondisi di toko.',
     teks_pesan_jual: 'Halo {toko} {cabang}, saya mau jual emas.\nKadar: {kadar}\nBerat: {berat} gram\nEstimasi: {estimasi}\nMohon info selanjutnya. Terima kasih.',
+    flash_kosong_judul: 'Belum Ada Flash Sale', flash_kosong_teks: 'Flash Sale dibuka saat event spesial. Daftar member dari sekarang agar siap ambil promo.',
+    bid_judul: 'Lelang Live', bid_sub: 'Tawar perhiasan pilihan mulai harga spesial. Penawar tertinggi saat waktu habis jadi pemenang.', bid_extend_menit: '2', bid_batas_jam: '3',
+    bid_syarat: 'Bersedia datang ke toko & melunasi maksimal 3 jam setelah lelang ditutup\nMembawa KTP & menunjukkan kode pemenang\nPemenang yang tidak datang otomatis hangus & masuk daftar hitam lelang berikutnya',
     lelang_kosong_judul: 'Belum Ada Lelang Saat Ini', lelang_kosong_teks: 'Lelang dibuka saat event spesial seperti Jumat Berkah. Daftar member & lengkapi syarat dari sekarang agar siap ikut.',
     member_judul: 'Akun Member', member_sub: 'Daftar cukup dengan nomor HP. Member bisa menyewa perhiasan & ikut lelang spesial.',
     sewa_catatan: 'Penyewaan wajib member & KTP asli saat pengambilan. Deposit dikembalikan setelah barang kembali dalam kondisi baik.',
@@ -172,7 +175,7 @@
     const K = n => 'assets/kat/' + n + '.png';
     return [['Cincin', 'cincin', 'kat:Cincin'], ['Kalung', 'kalung', 'kat:Kalung'], ['Gelang', 'gelang', 'kat:Gelang'], ['Anting', 'anting', 'kat:Anting & Liontin'],
       ['Logam Mulia', 'lm', 'kat:Logam Mulia'], ['Harga Emas', 'harga', '#/harga-emas'], ['Jual Emas', 'jual', '#/jual-emas'], ['Custom', 'custom', '#/galeri/custom'],
-      ['Pre-Order', 'po', '#/galeri/po'], ['Lelang', 'lelang', '#/lelang'], ['Sewa', 'sewa', 'kat:Sewa Pengantin'], ['Layanan', 'layanan', 'layanan']]
+      ['Pre-Order', 'po', '#/galeri/po'], ['Lelang', 'lelang', '#/lelang'], ['Flash Sale', 'flash', '#/flash-sale'], ['Sewa', 'sewa', 'kat:Sewa Pengantin'], ['Layanan', 'layanan', 'layanan']]
       .map((x, i) => ({ id: 'k' + (i + 1), label: x[0], img: K(x[1]), icon: 'diamond', link: x[2], tampil: true }));
   };
   App.kgItems = function () { let a = null; try { a = JSON.parse(((App.mode === 'admin' && App.admin && App.admin.settings) || (App.pub && App.pub.settings) || {}).kg_items || 'null'); } catch (e) { } return Array.isArray(a) && a.length ? a : KG_DEF(); };
@@ -184,7 +187,7 @@
     if (/^aksi:/.test(l)) return { href: '#', attr: ' data-act="' + l.slice(5) + '"' + (l === 'aksi:menu' ? ' data-menu' : '') };
     if (/^kat:/.test(l)) return { href: '#/katalog/' + encodeURIComponent('k:' + l.slice(4)), attr: ' data-nav="katalog"' };
     if (/^cari:/.test(l)) return { href: '#/katalog/' + encodeURIComponent('q:' + l.slice(5)), attr: ' data-nav="katalog"' };
-    if (/^#\//.test(l)) { const nv = { '#/harga-emas': 'harga', '#/jual-emas': 'jualemas', '#/lelang': 'lelang', '#/akun': 'akun', '#/favorit': 'favorit', '#/galeri/custom': 'galeri', '#/galeri/po': 'galeripo' }[l] || (/^#\/galeri\/[\w-]+$/.test(l) ? 'galeri-' + l.slice(9) : ''); return { href: l, attr: nv ? ' data-nav="' + nv + '"' : '' }; }
+    if (/^#\//.test(l)) { const nv = { '#/harga-emas': 'harga', '#/jual-emas': 'jualemas', '#/lelang': 'lelang', '#/flash-sale': 'flash', '#/akun': 'akun', '#/favorit': 'favorit', '#/galeri/custom': 'galeri', '#/galeri/po': 'galeripo' }[l] || (/^#\/galeri\/[\w-]+$/.test(l) ? 'galeri-' + l.slice(9) : ''); return { href: l, attr: nv ? ' data-nav="' + nv + '"' : '' }; }
     if (/^#./.test(l)) return { href: '#/katalog/' + encodeURIComponent('q:' + l.slice(1)), attr: ' data-nav="katalog"' };
     if (/^(https?:|mailto:|tel:)/i.test(l)) return { href: l, attr: ' target="_blank" rel="noopener"' };
     if (/^wa\.me|^[\w-]+(\.[\w-]+)+/i.test(l)) return { href: 'https://' + l, attr: ' target="_blank" rel="noopener"' };

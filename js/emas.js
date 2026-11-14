@@ -46,7 +46,7 @@
         (k ? '<div><span>Estimasi buyback hari ini</span><b>' + rp(Math.round(k.buyback * (Number(p.berat) || 0) / 1000) * 1000) + '</b></div>' : '') + '</div>';
     }
     const L = lelangState();
-    if (p.lelang && L.aktif && p.harga_lelang) h += '<a class="lelang-strip mt12" href="#/lelang">' + I('gavel') + '<span class="grow"><b>Ikut ' + esc(L.judul) + '</b><small>Harga lelang member ' + rp(p.harga_lelang) + ' · sisa ' + (p.lelang_sisa || 0) + '</small></span>' + I('arrow_forward') + '</a>';
+    if (p.lelang && L.aktif && p.harga_lelang) h += '<a class="lelang-strip mt12" href="#/flash-sale">' + I('bolt') + '<span class="grow"><b>Ikut ' + esc(L.judul) + '</b><small>Harga Flash Sale ' + rp(p.harga_lelang) + ' · sisa ' + (p.lelang_sisa || 0) + '</small></span>' + I('arrow_forward') + '</a>';
     return h;
   };
 
@@ -94,7 +94,8 @@
     return Object.assign({}, L, { aktif: !!L.nyala && (!mulai || now >= mulai) && (!selesai || now < selesai), akanDatang: !!L.nyala && mulai > now, mulaiMs: mulai, selesaiMs: selesai });
   }
   A.lelangState = lelangState;
-  A.menuOk = m => (m.id === 'lelang' || m.link === '#/lelang') ? !!(A.pub && A.pub.lelang && A.pub.lelang.nyala && (!A.pub.lelang.selesai || new Date(A.pub.lelang.selesai).getTime() > Date.now())) : true;
+  const bidAda = () => ((A.pub && A.pub.bid) || []).some(b => ['terjadwal', 'berlangsung', 'tutup'].indexOf(b.status) > -1 || (b.status === 'menunggu_bayar'));
+  A.menuOk = m => (m.id === 'lelang' || m.link === '#/lelang') ? bidAda() : (m.id === 'flash' || m.link === '#/flash-sale') ? !!(A.pub && A.pub.lelang && A.pub.lelang.nyala && (!A.pub.lelang.selesai || new Date(A.pub.lelang.selesai).getTime() > Date.now())) : true;
   function sisaWaktu(ms) {
     if (ms <= 0) return '0d';
     const d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5), m = Math.floor(ms % 36e5 / 6e4), s = Math.floor(ms % 6e4 / 1e3);
@@ -125,14 +126,6 @@
         '<div class="gc-main"><div><small>Emas murni / gram</small><b>' + rp(e.spot_emas) + '</b></div>' + trendChip() + '</div>' +
         '<div class="gc-grid">' + ks.map(k => '<div><span>' + esc(k.kode) + '</span><b>' + rp(k.jual) + '</b><small>Buyback ' + rp(k.buyback) + '</small></div>').join('') + '</div>' +
         '<div class="gc-cta"><span>' + I('table_chart') + 'Semua kadar</span><span data-href="#/jual-emas">' + I('currency_exchange') + 'Jual emas</span></div></a>';
-    };
-    A.SECTIONS.lelang = () => {
-      const L = lelangState(); if (!L.nyala || (!L.aktif && !L.akanDatang)) return '';
-      const n = ((A.pub && A.pub.products) || []).filter(p => p.lelang).length;
-      const tgt = L.aktif ? L.selesaiMs : L.mulaiMs;
-      return '<a class="lelang-mini' + (L.aktif ? ' live' : '') + '" href="#/lelang" aria-label="' + esc(L.judul) + '"><span class="lm-ic">' + I('gavel') + '</span>' +
-        '<span class="lm-t"><span class="lm-st">' + (L.aktif ? '<i></i>LIVE' : 'SEGERA') + '</span><b>' + esc(L.judul) + '</b></span>' +
-        (tgt ? '<span class="lm-cd" data-cdb="' + tgt + '">' + kotakWaktu(tgt - Date.now()) + '</span>' : '<span class="lm-go">' + I('arrow_forward') + '</span>') + '</a>';
     };
   }
   document.addEventListener('click', e => { const h = e.target.closest('.gold-card [data-href]'); if (h) { e.preventDefault(); e.stopPropagation(); location.hash = h.dataset.href; } }, true);
@@ -175,7 +168,7 @@
       if (!A.pub) { el.innerHTML = '<div class="col"><div class="skel" style="height:220px;margin-top:16px"></div></div>'; return; }
       const e = EM(), auto = e.sumber === 'goldapi';
       el.innerHTML = '<div class="col emas-pg">' + goBack('#/') +
-        '<div class="gold-hero"><span class="gc-live"><i></i>' + (auto ? 'Harga otomatis' : 'Harga resmi toko') + '</span><h1>' + esc(T('harga_judul')) + '</h1><p>' + esc(T('harga_sub')) + '</p>' +
+        '<div class="gold-hero"><span class="gc-live"><i></i>' + (auto ? 'Harga otomatis' : 'Harga resmi toko') + '</span><h1>' + esc(T('harga_judul')) + '</h1><p>' + esc(String(T('harga_sub') || '').replace(/\s+di\s+[^—\-]+$/i, '').replace(new RegExp('\\s+di\\s+' + (toko() || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'), '')) + '</p>' +
         '<div class="gh-main"><div><small>Emas murni (24K) / gram</small><b>' + rp(e.spot_emas) + '</b></div>' + trendChip() + '</div>' +
         '<div class="gh-meta">' + I('schedule') + 'Update: ' + esc(tgl(e.update) || 'hari ini') + (e.spot_perak ? ' · Perak murni ' + rp(e.spot_perak) + '/gr' : '') + '</div>' + riwayat() + '</div>' +
         '<div class="seg mt16" role="tablist"><button class="on" data-t="both">Jual & Buyback</button><button data-t="calc">Kalkulator</button></div>' +
@@ -228,45 +221,46 @@
       (L.wajib_verif ? ok(m.lelang === 'disetujui', 'Disetujui admin', ' ' + stChip(m.lelang)) : '') + '</ul>';
   }
   const bolehLelang = (me, L) => { const m = me && me.member; if (!m) return false; return (!L.wajib_verif || m.lelang === 'disetujui') && (!L.wajib_ktp || (m.ktp !== 'belum' && m.ktp !== 'ditolak')) && (!L.wajib_nota || (m.nota !== 'belum' && m.nota !== 'ditolak')) && (!L.wajib_sosmed || (m.ikut_sosmed && m.ig)); };
-  A.page('lelang', {
-    nav: 'lelang', title: () => lelangState().judul || 'Lelang',
+  A.page('flash-sale', {
+    nav: 'flash', title: () => lelangState().judul || 'Flash Sale',
     render(el) {
       if (!A.pub) { el.innerHTML = '<div class="col"><div class="skel" style="height:220px;margin-top:16px"></div></div>'; return; }
       const L = lelangState(), me = Mem.me();
       const items = ((A.pub.products) || []).filter(p => p.lelang);
-      const syaratUmum = (L.syarat || []).length ? '<div class="card pad mt12"><h3 class="h3">' + I('rule') + 'Syarat Ikut Lelang</h3><ol class="ol">' + L.syarat.map(x => '<li>' + esc(x) + '</li>').join('') + '</ol></div>' : '';
+      const syaratUmum = (L.syarat || []).length ? '<div class="card pad mt12"><h3 class="h3">' + I('rule') + 'Syarat Ikut Flash Sale & Lelang</h3><ol class="ol">' + L.syarat.map(x => '<li>' + esc(x) + '</li>').join('') + '</ol></div>' : '';
       if (!L.aktif) {
-        el.innerHTML = '<div class="col emas-pg">' + goBack('#/') + '<div class="empty lelang-empty"><span class="big">' + I('gavel') + '</span><h3>' + esc(L.akanDatang ? L.judul : T('lelang_kosong_judul')) + '</h3><p>' + esc(L.akanDatang ? (L.sub || '') : T('lelang_kosong_teks')) + '</p>' +
+        el.innerHTML = '<div class="col emas-pg">' + goBack('#/') + '<div class="empty lelang-empty"><span class="big">' + I('bolt') + '</span><h3>' + esc(L.akanDatang ? L.judul : T('flash_kosong_judul')) + '</h3><p>' + esc(L.akanDatang ? (L.sub || '') : T('flash_kosong_teks')) + '</p>' +
           (L.akanDatang ? '<div class="mt12">' + cd(L.mulaiMs, 'Dibuka dalam') + '</div><p class="muted small mt8">Dibuka ' + esc(tglPendek(L.mulai)) + '</p>' : '') +
           '<a class="btn btn-amber mt16" href="#/akun">' + I('account_circle') + (me ? 'Lengkapi syarat member' : 'Daftar member sekarang') + '</a></div>' + syaratUmum + '</div>';
         return;
       }
       const boleh = bolehLelang(me, L);
       el.innerHTML = '<div class="col emas-pg">' + goBack('#/') +
-        '<div class="lelang-hero"><span class="lbl">' + I('celebration') + 'Sedang berlangsung</span><h1>' + esc(L.judul) + '</h1>' + (L.sub ? '<p>' + esc(L.sub) + '</p>' : '') +
+        '<div class="lelang-hero"><span class="lbl">' + I('bolt') + 'Flash Sale berlangsung</span><h1>' + esc(L.judul) + '</h1>' + (L.sub ? '<p>' + esc(L.sub) + '</p>' : '') +
         (L.selesaiMs ? cd(L.selesaiMs, 'Berakhir dalam') : '<p class="small">Selama persediaan masih ada</p>') + '</div>' +
         (me ? '<div class="card pad mt12"><div class="row" style="justify-content:space-between"><h3 class="h3" style="margin:0">' + I('verified_user') + 'Status Anda</h3><a class="see-all" href="#/akun">Kelola' + I('arrow_forward') + '</a></div>' + syaratMember(me, L) +
           (boleh ? '<div class="note ok mt8">' + I('check_circle') + '<div>Anda memenuhi syarat. Pilih produk lalu tekan <b>Ambil</b>. Maksimal ' + L.maks + ' produk per member.</div></div>' : '<a class="btn btn-ink btn-block mt8" href="#/akun">' + I('upload') + 'Lengkapi syarat di halaman Akun</a>') + '</div>'
-          : '<div class="note amber mt12">' + I('lock') + '<div><b>Khusus member.</b> Masuk atau daftar dengan nomor HP untuk ikut lelang. <a href="#/akun" data-login style="font-weight:700">Masuk / Daftar</a></div></div>') +
-        '<div class="sec-head mt16"><h2 class="sec-title">Produk Lelang</h2><span class="muted small">' + items.length + ' produk</span></div>' +
+          : '<div class="note amber mt12">' + I('lock') + '<div><b>Khusus member.</b> Masuk atau daftar dengan nomor HP untuk ambil promo Flash Sale. <a href="#/akun" data-login style="font-weight:700">Masuk / Daftar</a></div></div>') +
+        '<div class="sec-head mt16"><h2 class="sec-title">Produk Flash Sale</h2><span class="muted small">' + items.length + ' produk</span></div>' +
         (items.length ? '<div class="pgrid">' + items.map(p => {
-          const habis = !(p.lelang_sisa > 0) || p.status === 'Habis', f = (p.foto || [])[0];
+          const habis = !(p.lelang_sisa > 0) || p.status === 'Habis', booked = habis && p.lelang_booked > 0 && p.status !== 'Habis', f = (p.foto || [])[0];
           return '<article class="pcard lcard' + (habis ? ' sold' : '') + '"><a class="pimg" href="#/produk/' + encodeURIComponent(p.id) + '">' + (f ? '<img src="' + esc(img(f, 500)) + '" alt="' + esc(p.nama) + '" loading="lazy">' : '') +
-            '<span class="chip c-tl lbl-hot">' + I('gavel') + (habis ? 'Habis' : 'Sisa ' + p.lelang_sisa) + '</span></a><div class="pbody"><div class="pmeta ell">' + esc(cabNama(p.cabang)) + '</div><h3 class="pname">' + esc(p.nama) + '</h3>' + A.emasChip(p) +
+            '<span class="chip c-tl ' + (booked ? 'lbl-booked' : 'lbl-hot') + '">' + I(booked ? 'lock_clock' : 'bolt') + (booked ? 'Dipesan (Booked)' : habis ? 'Habis' : 'Sisa ' + p.lelang_sisa) + '</span></a><div class="pbody"><div class="pmeta ell">' + esc(cabNama(p.cabang)) + '</div><h3 class="pname">' + esc(p.nama) + '</h3>' + A.emasChip(p) +
             '<div class="spacer"></div><div class="strike">' + rp(p.harga) + '</div><div class="price">' + rp(p.harga_lelang || p.harga) + '</div>' +
-            '<button class="btn ' + (habis ? 'btn-soft' : 'btn-amber') + '" data-ambil="' + esc(p.id) + '"' + (habis ? ' disabled' : '') + '>' + I(habis ? 'block' : 'gavel') + (habis ? 'Sudah diambil' : 'Ambil') + '</button></div></article>';
-        }).join('') + '</div>' : '<div class="empty">' + I('inventory_2') + '<p>Produk lelang segera ditambahkan.</p></div>') + syaratUmum + '</div>';
-      const lg = el.querySelector('[data-login]'); if (lg) lg.onclick = e => { e.preventDefault(); needLogin('lelang'); };
+            '<button class="btn ' + (habis ? 'btn-soft' : 'btn-amber') + '" data-ambil="' + esc(p.id) + '"' + (habis ? ' disabled' : '') + '>' + I(habis ? (booked ? 'lock_clock' : 'block') : 'bolt') + (booked ? 'Sedang dipesan' : habis ? 'Sudah habis' : 'Ambil Promo') + '</button></div></article>';
+        }).join('') + '</div>' : '<div class="empty">' + I('inventory_2') + '<p>Produk Flash Sale segera ditambahkan.</p></div>') + syaratUmum + '</div>';
+      const lg = el.querySelector('[data-login]'); if (lg) lg.onclick = e => { e.preventDefault(); needLogin('flash-sale'); };
       el.querySelectorAll('[data-ambil]').forEach(b => b.onclick = () => ambil(b.dataset.ambil));
-      if (Mem.tok() && !el.dataset.ref) { el.dataset.ref = 1; Mem.refresh().then(x => { delete el.dataset.ref; if (x && A.cur === 'lelang' && JSON.stringify(x) !== JSON.stringify(me)) A.rerender(); }); }
+      if (Mem.tok() && !el.dataset.ref) { el.dataset.ref = 1; Mem.refresh().then(x => { delete el.dataset.ref; if (x && A.cur === 'flash-sale' && JSON.stringify(x) !== JSON.stringify(me)) A.rerender(); }); }
     }
   });
+  Object.assign(A, { syaratMember, bolehLelang, needLogin, kotakWaktu, tglEmas: tgl, gramEmas: gram, stChip });
   async function ambil(id) {
     const p = (A.pub.products || []).find(x => x.id === id); if (!p) return;
-    if (!Mem.tok()) return needLogin('lelang');
+    if (!Mem.tok()) return needLogin('flash-sale');
     const L = lelangState();
-    if (!bolehLelang(Mem.me(), L)) { A.toast('Lengkapi syarat lelang dulu di halaman Akun', 'info'); return A.go('akun'); }
-    if (!await A.confirm('Ambil "' + p.nama + '" seharga ' + rp(p.harga_lelang || p.harga) + '? Kode lelang akan dibuat dan wajib ditukar di ' + cabNama(p.cabang) + '.', 'Ambil Sekarang')) return;
+    if (!bolehLelang(Mem.me(), L)) { A.toast('Lengkapi syarat member dulu di halaman Akun', 'info'); return A.go('akun'); }
+    if (!await A.confirm('Ambil "' + p.nama + '" seharga ' + rp(p.harga_lelang || p.harga) + '? Produk langsung berstatus Dipesan (Booked) untuk Anda. Tukarkan kode di ' + cabNama(p.cabang) + ' sebelum batas waktu.', 'Ambil Sekarang')) return;
     const r = await mapi('m.lelang', { produk: id });
     if (!r.success) { A.toast(r.message, 'err'); if (r.data && r.data.code === 'HABIS') A.loadPublic(true); return; }
     kodeSheet(r.data, true); Mem.refresh(); A.loadPublic(true);
@@ -277,7 +271,7 @@
       '<p class="muted">' + esc(k.produk_nama) + ' · <b>' + rp(k.harga) + '</b></p><div class="qr-big">' + q + '</div><div class="kode">' + esc(k.kode) + '</div>' +
       '<p class="small">Tunjukkan kode ini + KTP di <b>' + esc(cabNama(k.cabang)) + '</b>' + (k.batas_tukar ? ' sebelum ' + esc(tgl(k.batas_tukar)) : '') + '.</p>' +
       '<span class="chip ' + (k.status === 'Ditukar' ? 'chip-ok' : k.status === 'Batal' ? 'chip-no' : 'chip-amber') + '">' + esc(k.status) + '</span>' +
-      '<button class="btn btn-ghost btn-block mt12" data-copy="' + esc(k.kode) + '">' + I('content_copy') + 'Salin kode</button></div>', { title: 'Kode Lelang', center: true });
+      '<button class="btn btn-ghost btn-block mt12" data-copy="' + esc(k.kode) + '">' + I('content_copy') + 'Salin kode</button></div>', { title: 'Kode Flash Sale', center: true });
   }
   document.addEventListener('click', e => { const c = e.target.closest('.kode-box [data-copy]'); if (!c) return; Promise.resolve().then(() => navigator.clipboard.writeText(c.dataset.copy)).then(() => A.toast('Kode disalin'), () => A.toast('Salin manual: ' + c.dataset.copy, 'info')); });
 
@@ -294,7 +288,7 @@
   });
   function formAkun(el, tab) {
     el.innerHTML = '<div class="col emas-pg">' + goBack('#/') + '<div class="member-hero"><span class="mh-ic">' + I('account_circle') + '</span><h1>' + esc(T('member_judul')) + '</h1><p>' + esc(T('member_sub')) + '</p>' +
-      '<div class="mh-perks"><span>' + I('gavel') + 'Ikut lelang</span><span>' + I('event_available') + 'Sewa perhiasan</span><span>' + I('confirmation_number') + 'Kode & riwayat</span></div></div>' +
+      '<div class="mh-perks"><span>' + I('gavel') + 'Lelang & Flash Sale</span><span>' + I('event_available') + 'Sewa perhiasan</span><span>' + I('confirmation_number') + 'Kode & riwayat</span></div></div>' +
       '<div class="ul-tabs mt16"><button data-t="masuk"' + (tab === 'masuk' ? ' class="on"' : '') + '>Masuk</button><button data-t="daftar"' + (tab === 'daftar' ? ' class="on"' : '') + '>Daftar</button></div><div class="card pad mt12" data-f></div></div>';
     const box = el.querySelector('[data-f]');
     const draw = t => {
@@ -347,8 +341,9 @@
       doc('ktp', 'Foto KTP', 'Wajib untuk sewa & lelang') + doc('nota', 'Bukti nota pembelian', 'Foto nota belanja di toko kami') +
       '<div class="doc-row"><span class="ic">' + I('group') + '</span><div class="grow"><b>Media sosial toko</b><small>' + (m.ig ? 'IG: ' + esc(m.ig) : 'Isi username Instagram Anda') + '</small></div>' + (m.ikut_sosmed && m.ig ? '<span class="chip chip-ok">Sudah</span>' : '<span class="chip chip-no">Belum</span>') + '<button class="btn btn-ghost btn-sm" data-sos>' + I('edit') + 'Atur</button></div>' +
       '<div class="doc-row"><span class="ic">' + I('gavel') + '</span><div class="grow"><b>Status lelang</b><small>' + esc(m.catatan || (m.lelang === 'disetujui' ? 'Anda bisa ikut lelang' : 'Diverifikasi admin setelah dokumen lengkap')) + '</small></div>' + stChip(m.lelang) + '</div></div>' +
-      '<div class="card pad mt12"><div class="row" style="justify-content:space-between"><h3 class="h3" style="margin:0">' + I('confirmation_number') + 'Kode Lelang Saya</h3>' + (L.aktif ? '<a class="see-all" href="#/lelang">Lelang' + I('arrow_forward') + '</a>' : '') + '</div>' +
-      ((me.klaim || []).length ? '<div class="list mt8">' + me.klaim.map((k, i) => '<button class="li" data-k="' + i + '" style="width:100%;text-align:left"><span class="avatar-i">' + I('qr_code_2') + '</span><div class="grow"><b class="ell">' + esc(k.produk_nama) + '</b><small class="mono">' + esc(k.kode) + ' · ' + rp(k.harga) + '</small></div><span class="chip ' + (k.status === 'Ditukar' ? 'chip-ok' : k.status === 'Batal' ? 'chip-no' : 'chip-amber') + '">' + esc(k.status) + '</span></button>').join('') + '</div>' : '<p class="muted small mt8">Belum ada. Ikuti lelang saat event berlangsung.</p>') + '</div>' +
+      ((me.menang || []).length ? '<div class="card pad mt12 win-card"><h3 class="h3">' + I('emoji_events') + 'Kemenangan Lelang Live</h3><div class="list mt8">' + me.menang.map(w => '<a class="li" href="#/lelang/' + encodeURIComponent(w.id) + '"><span class="avatar-i">' + I('emoji_events', 'fill') + '</span><div class="grow"><b class="ell">' + esc(w.produk_nama) + '</b><small class="mono">' + esc(w.kode) + ' · ' + rp(w.harga) + (w.status === 'menunggu_bayar' ? ' · lunasi sebelum ' + esc(tgl(w.batas_bayar)) : '') + '</small></div><span class="chip ' + (w.status === 'dibayar' ? 'chip-ok' : w.status === 'menunggu_bayar' ? 'chip-amber' : 'chip-no') + '">' + esc({ menunggu_bayar: 'Belum lunas', dibayar: 'Lunas', hangus: 'Hangus' }[w.status] || w.status) + '</span></a>').join('') + '</div></div>' : '') +
+      '<div class="card pad mt12"><div class="row" style="justify-content:space-between"><h3 class="h3" style="margin:0">' + I('confirmation_number') + 'Kode Flash Sale Saya</h3>' + (L.aktif ? '<a class="see-all" href="#/flash-sale">Flash Sale' + I('arrow_forward') + '</a>' : '') + '</div>' +
+      ((me.klaim || []).length ? '<div class="list mt8">' + me.klaim.map((k, i) => '<button class="li" data-k="' + i + '" style="width:100%;text-align:left"><span class="avatar-i">' + I('qr_code_2') + '</span><div class="grow"><b class="ell">' + esc(k.produk_nama) + '</b><small class="mono">' + esc(k.kode) + ' · ' + rp(k.harga) + '</small></div><span class="chip ' + (k.status === 'Ditukar' ? 'chip-ok' : k.status === 'Batal' ? 'chip-no' : 'chip-amber') + '">' + esc(k.status) + '</span></button>').join('') + '</div>' : '<p class="muted small mt8">Belum ada. Ikuti Flash Sale saat event berlangsung.</p>') + '</div>' +
       '<div class="card pad mt12"><h3 class="h3">' + I('event_available') + 'Sewa Saya</h3>' +
       ((me.sewa || []).length ? '<div class="list mt8">' + me.sewa.map(s => '<div class="li"><span class="avatar-i">' + I('favorite') + '</span><div class="grow"><b class="ell">' + esc(s.produk_nama) + '</b><small>' + esc(s.kode) + ' · mulai ' + esc(s.mulai) + ' · ' + rp(s.total) + '</small></div><span class="chip ' + ({ Disetujui: 'chip-ok', Berjalan: 'chip-ok', Selesai: '', Batal: 'chip-no' }[s.status] || 'chip-amber') + '">' + esc(s.status) + '</span></div>').join('') + '</div>' : '<p class="muted small mt8">Belum ada sewa. <a href="#/katalog/' + encodeURIComponent('k:Sewa Pengantin') + '">Lihat produk sewa</a></p>') + '</div>' +
       '<div class="row mt16"><button class="btn btn-ghost grow" data-pw>' + I('key') + 'Ganti sandi</button><button class="btn btn-ghost grow" data-out style="color:var(--danger)">' + I('logout') + 'Keluar</button></div></div>';

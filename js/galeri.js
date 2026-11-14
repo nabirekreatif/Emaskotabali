@@ -55,7 +55,7 @@
 
   /* ======================= MENU KATEGORI ala aplikasi (grid 4 kolom × 2 baris, geser untuk lainnya) ======================= */
   const kgTile = m => {
-    const L = A.menuLink(m), lelangOff = (m.link === '#/lelang' && A.menuOk && !A.menuOk({ id: 'lelang', link: '#/lelang' }));
+    const L = A.menuLink(m), lelangOff = ((m.link === '#/lelang' || m.link === '#/flash-sale') && A.menuOk && !A.menuOk({ id: m.link === '#/lelang' ? 'lelang' : 'flash', link: m.link }));
     if (lelangOff) return '';
     return '<a class="kg-it" href="' + esc(L.href) + '"' + L.attr + '><span class="kg-ic">' + (m.img ? '<img src="' + esc(img(m.img, 160)) + '" alt="" loading="lazy" decoding="async" width="56" height="56">' : I(m.icon || 'apps', 'fill')) + '</span><span class="kg-l">' + esc(m.label) + '</span></a>';
   };
@@ -94,13 +94,15 @@
   if (A.SECTIONS) { A.SECTIONS.kategori_grid = kgSection; A.SECTIONS.galeri = galeriSection; }
 
   /* ======================= HALAMAN GALERI ======================= */
-  const GS = { jenis: 'custom', kat: '', q: '', n: 24 };
+  const GS = { jenis: 'custom', kat: '', q: '', n: 24, urut: 'baru' };
+  const URUT = { baru: ['schedule', 'Terbaru'], lama: ['history', 'Terlama'], acak: ['shuffle', 'Acak'] };
+  let acakSeed = Math.random();
   A.page('galeri', {
     nav: 'galeri', title: () => gInfo(GS.jenis).judul,
     render(el, param, re, changed) {
       const [j, id] = String(param || '').split('/');
       const jenis = j && /^[a-z0-9-]{2,24}$/.test(j) ? j : ((GD()[0] || {}).id || 'custom');
-      if (changed !== false && jenis !== GS.jenis) { GS.kat = ''; GS.q = ''; GS.n = 24; }
+      if (changed !== false && jenis !== GS.jenis) { GS.kat = ''; GS.q = ''; GS.n = 24; GS.urut = 'baru'; }
       GS.jenis = jenis;
       const nv = jenis === 'po' ? 'galeripo' : jenis === 'custom' ? 'galeri' : 'galeri-' + jenis;
       document.querySelectorAll('[data-nav]').forEach(a => { if (/^galeri/.test(a.dataset.nav)) a.classList.toggle('on', a.dataset.nav === nv); });
@@ -111,32 +113,60 @@
   });
   function filtered() {
     const q = GS.q.trim().toLowerCase(), words = q.split(/\s+/).filter(Boolean);
-    return items(GS.jenis).filter(g => (!GS.kat || g.kategori === GS.kat) && (!words.length || words.every(w => (g.kategori + ' ' + g.tag + ' ' + (g.jenis === 'po' ? 'po pre order preorder' : 'custom pesanan')).toLowerCase().indexOf(w) > -1)));
+    let L = items(GS.jenis).filter(g => (!GS.kat || g.kategori === GS.kat) && (!words.length || words.every(w => (g.kategori + ' ' + g.tag + ' ' + (g.jenis === 'po' ? 'po pre order preorder' : 'custom pesanan')).toLowerCase().indexOf(w) > -1)));
+    if (GS.urut === 'lama') L = L.slice().reverse();
+    else if (GS.urut === 'acak') { const h = id => { let x = Math.floor(acakSeed * 1e9); for (let i = 0; i < id.length; i++) x = (x * 31 + id.charCodeAt(i)) | 0; return x; }; L = L.slice().sort((a, b) => h(a.id) - h(b.id)); }
+    return L;
   }
   function draw(el) {
     const J = gInfo(GS.jenis), all = items(GS.jenis), cats = {};
     all.forEach(g => { cats[g.kategori] = (cats[g.kategori] || 0) + 1; });
     const urut = String(T('galeri_kategori') || '').split(',').map(x => x.trim()).filter(Boolean);
     const catList = Object.keys(cats).sort((a, b) => { const ia = urut.indexOf(a), ib = urut.indexOf(b); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b); });
-    const lay = layoutNow(), oks = layoutsOk();
-    el.innerHTML = '<div class="wide gal-pg"><div class="gal-hero"><div class="gal-sw" role="tablist">' + GD().map(g => '<a href="#/galeri/' + esc(g.id) + '" class="' + (g.id === GS.jenis ? 'on' : '') + '">' + I(g.icon || 'photo_library') + esc(g.nama) + '<small>' + items(g.id).length + '</small></a>').join('') + '</div>' +
-      '<h1>' + esc(J.judul) + '</h1><p>' + esc(J.sub || '') + '</p></div>' +
-      '<div class="gal-bar"><div class="search">' + I('search') + '<input type="search" placeholder="Cari model, kategori, mis. cincin nama…" value="' + esc(GS.q) + '" data-gq aria-label="Cari foto"></div>' +
-      (oks.length > 1 ? '<div class="gal-lay" role="group" aria-label="Tampilan galeri">' + oks.map(k => '<button type="button" data-lay="' + k + '" class="' + (k === lay ? 'on' : '') + '" title="' + LAYOUT[k][1] + '" aria-label="Tampilan ' + LAYOUT[k][1] + '">' + I(LAYOUT[k][0]) + '</button>').join('') + '</div>' : '') + '</div>' +
+    const lay = layoutNow(), oks = layoutsOk(), nF = (GS.kat ? 1 : 0) + (GS.urut !== 'baru' ? 1 : 0);
+    el.innerHTML = '<div class="wide gal-pg"><div class="gal-hero"><div class="gal-sw" role="tablist" aria-label="Pilih galeri">' + GD().map(g => '<a href="#/galeri/' + esc(g.id) + '" role="tab" aria-selected="' + (g.id === GS.jenis) + '" class="' + (g.id === GS.jenis ? 'on' : '') + '">' + I(g.icon || 'photo_library') + '<span>' + esc(g.nama) + '</span><small>' + items(g.id).length + '</small></a>').join('') + '</div>' +
+      '<h1>' + esc(J.judul) + '</h1><p>' + esc(J.sub || '') + '</p><div class="gal-stat"><span>' + I('photo_library') + all.length + ' foto</span><span>' + I('category') + catList.length + ' kategori</span></div></div>' +
+      '<div class="gal-bar"><div class="search">' + I('search') + '<input type="search" placeholder="Cari model, mis. cincin nama…" value="' + esc(GS.q) + '" data-gq aria-label="Cari foto"></div>' +
+      '<button type="button" class="gal-tb' + (nF ? ' act' : '') + '" data-gf aria-label="Filter & urutkan">' + I('tune') + '<span>Filter</span>' + (nF ? '<b>' + nF + '</b>' : '') + '</button>' +
+      (oks.length > 1 ? '<div class="gal-lw"><button type="button" class="gal-tb" data-gl aria-haspopup="true" aria-expanded="false" aria-label="Tampilan: ' + LAYOUT[lay][1] + '">' + I(LAYOUT[lay][0]) + '<span>' + LAYOUT[lay][1] + '</span>' + I('expand_more') + '</button>' +
+        '<div class="gal-pop" data-gp hidden role="menu"><div class="gp-h">Tampilan galeri</div>' + oks.map(k => '<button type="button" role="menuitemradio" aria-checked="' + (k === lay) + '" data-lay="' + k + '" class="' + (k === lay ? 'on' : '') + '">' + I(LAYOUT[k][0]) + '<span>' + LAYOUT[k][1] + '</span>' + (k === lay ? I('check') : '') + '</button>').join('') + '</div></div>' : '') + '</div>' +
       '<div class="pills gal-chips" data-gk><button class="pill' + (GS.kat ? '' : ' on') + '" data-k="">Semua <small>' + all.length + '</small></button>' + catList.map(c => '<button class="pill' + (c === GS.kat ? ' on' : '') + '" data-k="' + esc(c) + '">' + esc(c) + ' <small>' + cats[c] + '</small></button>').join('') + '</div>' +
+      (nF ? '<div class="gal-act">' + (GS.kat ? '<button data-clr="kat">' + esc(GS.kat) + I('close') + '</button>' : '') + (GS.urut !== 'baru' ? '<button data-clr="urut">' + I(URUT[GS.urut][0]) + esc(URUT[GS.urut][1]) + I('close') + '</button>' : '') + '<button data-clr="all" class="lnk">Hapus filter</button></div>' : '') +
       '<div data-gg></div><div class="gal-more" data-gm></div>' +
       '<div class="gal-foot"><span>' + I('info') + 'Ketuk foto untuk melihat besar & menanyakannya lewat WhatsApp.</span></div></div>';
     const q = el.querySelector('[data-gq]');
-    q.addEventListener('input', A.debounce(() => { GS.q = q.value; GS.n = 24; grid(el); }, 220));
-    el.querySelector('[data-gk]').onclick = e => { const b = e.target.closest('[data-k]'); if (!b) return; GS.kat = b.dataset.k; GS.n = 24; el.querySelectorAll('[data-gk] .pill').forEach(x => x.classList.toggle('on', x === b)); grid(el); };
-    const lb = el.querySelector('.gal-lay'); if (lb) lb.onclick = e => { const b = e.target.closest('[data-lay]'); if (!b) return; A.Store.set('gal_' + (isPC() ? 'pc' : 'hp'), b.dataset.lay); lb.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); grid(el); };
-    grid(el);
+    q.addEventListener('input', A.debounce(() => { GS.q = q.value; GS.n = 24; grid(el, true); }, 220));
+    el.querySelector('[data-gk]').onclick = e => { const b = e.target.closest('[data-k]'); if (!b) return; GS.kat = b.dataset.k; GS.n = 24; draw(el); };
+    const act = el.querySelector('.gal-act'); if (act) act.onclick = e => { const b = e.target.closest('[data-clr]'); if (!b) return; const c = b.dataset.clr; if (c !== 'urut') GS.kat = ''; if (c !== 'kat') GS.urut = 'baru'; GS.n = 24; draw(el); };
+    el.querySelector('[data-gf]').onclick = () => filterSheet(el, catList, cats, all.length);
+    const gl = el.querySelector('[data-gl]'), gp = el.querySelector('[data-gp]');
+    if (gl) {
+      const tutup = () => { gp.hidden = true; gl.setAttribute('aria-expanded', 'false'); document.removeEventListener('click', luar, true); };
+      const luar = e => { if (!e.target.closest('.gal-lw')) tutup(); };
+      gl.onclick = () => { const buka = gp.hidden; gp.hidden = !buka; gl.setAttribute('aria-expanded', String(buka)); if (buka) document.addEventListener('click', luar, true); else tutup(); };
+      gp.onclick = e => { const b = e.target.closest('[data-lay]'); if (!b) return; A.Store.set('gal_' + (isPC() ? 'pc' : 'hp'), b.dataset.lay); tutup(); draw(el); };
+    }
+    const on = el.querySelector('.gal-sw a.on'); if (on && on.scrollIntoView) { const sw = on.parentNode; sw.scrollLeft = Math.max(0, on.offsetLeft - (sw.clientWidth - on.offsetWidth) / 2); }
+    const ch = el.querySelector('.gal-chips .pill.on'); if (ch) { const p = ch.parentNode; p.scrollLeft = Math.max(0, ch.offsetLeft - 16); }
+    grid(el, true);
+  }
+  function filterSheet(el, catList, cats, total) {
+    let k = GS.kat, u = GS.urut;
+    const o = A.sheet('<div class="gf"><div class="gf-h">Kategori</div><div class="gf-chips" data-fk><button class="' + (k ? '' : 'on') + '" data-k="">Semua <small>' + total + '</small></button>' + catList.map(c => '<button class="' + (c === k ? 'on' : '') + '" data-k="' + esc(c) + '">' + esc(c) + ' <small>' + cats[c] + '</small></button>').join('') + '</div>' +
+      '<div class="gf-h mt16">Urutkan</div><div class="gf-seg" data-fu>' + Object.keys(URUT).map(x => '<button class="' + (x === u ? 'on' : '') + '" data-u="' + x + '">' + I(URUT[x][0]) + URUT[x][1] + '</button>').join('') + '</div>' +
+      '<div class="row mt16" style="gap:8px"><button class="btn btn-ghost" data-rs>' + I('restart_alt') + 'Reset</button><button class="btn btn-amber grow" data-ap>' + I('check') + 'Terapkan <span data-cnt></span></button></div></div>', { title: 'Filter & Urutkan' });
+    const cnt = () => { const n = items(GS.jenis).filter(g => !k || g.kategori === k).length; o.querySelector('[data-cnt]').textContent = '(' + n + ' foto)'; };
+    o.querySelector('[data-fk]').onclick = e => { const b = e.target.closest('[data-k]'); if (!b) return; k = b.dataset.k; o.querySelectorAll('[data-fk] button').forEach(x => x.classList.toggle('on', x === b)); cnt(); };
+    o.querySelector('[data-fu]').onclick = e => { const b = e.target.closest('[data-u]'); if (!b) return; u = b.dataset.u; o.querySelectorAll('[data-fu] button').forEach(x => x.classList.toggle('on', x === b)); };
+    o.querySelector('[data-rs]').onclick = () => { k = ''; u = 'baru'; o.querySelectorAll('[data-fk] button').forEach(x => x.classList.toggle('on', !x.dataset.k)); o.querySelectorAll('[data-fu] button').forEach(x => x.classList.toggle('on', x.dataset.u === 'baru')); cnt(); };
+    o.querySelector('[data-ap]').onclick = () => { if (u === 'acak' && GS.urut !== 'acak') acakSeed = Math.random(); GS.kat = k; GS.urut = u; GS.n = 24; o.close(); draw(el); };
+    cnt();
   }
   let io = null;
-  function grid(el) {
+  function grid(el, anim) {
     const box = el.querySelector('[data-gg]'), more = el.querySelector('[data-gm]'), list = filtered(), lay = layoutNow();
     const w = { grid: 360, mosaik: 420, masonry: 420, besar: 900, rapat: 240 }[lay] || 400;
-    box.className = 'gal gal-' + lay + ' gj-' + esc(T('galeri_jarak') || 'normal') + ' gs-' + esc(T('galeri_sudut') || 'bulat') + (T('galeri_label') === 'TIDAK' || lay === 'rapat' ? ' no-lbl' : '');
+    box.className = 'gal gal-' + lay + ' gj-' + esc(T('galeri_jarak') || 'normal') + ' gs-' + esc(T('galeri_sudut') || 'bulat') + (T('galeri_label') === 'TIDAK' || lay === 'rapat' ? ' no-lbl' : '') + (anim ? ' anim' : '');
     box.innerHTML = list.length ? list.slice(0, GS.n).map((g, i) => '<div class="gi" role="button" tabindex="0" data-gi="' + i + '" aria-label="Lihat foto ' + esc(g.kategori) + '"><img src="' + esc(img(g.foto, w)) + '" alt="' + esc(g.kategori + (g.tag ? ' — ' + g.tag : '')) + '" loading="' + (i < 6 ? 'eager' : 'lazy') + '" decoding="async"><span class="gl">' + esc(g.kategori) + '</span>' + (A.favBtn ? A.favBtn('g', g.id) : '') + '</div>').join('')
       : '<div class="empty" style="grid-column:1/-1">' + I('search_off') + '<p>Belum ada foto untuk pencarian ini.</p>' + (GS.q || GS.kat ? '<button class="btn btn-ghost btn-sm" data-reset>Tampilkan semua</button>' : '') + '</div>';
     box.onkeydown = e => { const b = e.target.closest('[data-gi]'); if (b && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); b.click(); } };
