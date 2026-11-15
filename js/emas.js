@@ -128,6 +128,26 @@
         '<div class="gc-cta"><span>' + I('table_chart') + 'Semua kadar</span><span data-href="#/jual-emas">' + I('currency_exchange') + 'Jual emas</span></div></a>';
     };
   }
+  /* ---------- slot: widget harga emas di katalog ---------- */
+  A.slots.push(function kgold(name) {
+    if (name !== 'katalog' || String(T('kat_harga_tampil')).toUpperCase() === 'TIDAK') return null;
+    const e = EM(); if (!e.kadar.length) return null;
+    const pilih = String(T('kat_harga_kadar') || '').split(',').map(x => x.trim().toUpperCase()).filter(Boolean);
+    const ks = (pilih.length ? pilih.map(kadarOf).filter(Boolean) : KADAR()).filter(k => k.tampil !== false).slice(0, 6);
+    if (!ks.length) return null;
+    return { key: 'kgold', after: '.kat-title + p', html: '<a class="kat-gold" href="#/harga-emas"><div class="kgd-h"><span class="gc-live"><i></i>' + esc(T('harga_judul')) + '</span><span class="kgd-go">Semua kadar' + I('chevron_right') + '</span></div>' +
+      '<div class="kgd-row">' + ks.map(k => '<div><span>' + esc(k.kode) + '</span><b>' + rp(k.jual) + '</b><small>/gram</small></div>').join('') + '</div>' +
+      '<div class="kgd-f">' + I('update') + 'Diperbarui ' + esc(tgl(e.update)) + ' · harga acuan, produk menyesuaikan otomatis</div></a>' };
+  });
+  /* ---------- slot: poster per halaman fitur (Dasbor → Poster & Widget) ---------- */
+  A.slots.push(function poster(name, param) {
+    if (!A.POSTER_PAGES.some(p => p[0] === name) || (name === 'lelang' && param)) return null;
+    const k = 'poster_' + name.replace(/-/g, '_'), set = (A.pub && A.pub.settings) || {};
+    if (String(set[k + '_on']).toUpperCase() !== 'YA' || !set[k + '_img']) return null;
+    const ln = String(set[k + '_link'] || '').trim(), ext = /^https?:/i.test(ln);
+    const pic = '<img src="' + esc(img(set[k + '_img'], 1200)) + '" alt="' + esc(set[k + '_alt'] || 'Poster') + '" loading="lazy">';
+    return { key: 'poster', html: ln ? '<a class="pg-poster" href="' + esc(ln) + '"' + (ext ? ' target="_blank" rel="noopener"' : '') + '>' + pic + '</a>' : '<div class="pg-poster">' + pic + '</div>' };
+  });
   document.addEventListener('click', e => { const h = e.target.closest('.gold-card [data-href]'); if (h) { e.preventDefault(); e.stopPropagation(); location.hash = h.dataset.href; } }, true);
 
   /* ======================= TABEL & KALKULATOR ======================= */
@@ -168,7 +188,7 @@
       if (!A.pub) { el.innerHTML = '<div class="col"><div class="skel" style="height:220px;margin-top:16px"></div></div>'; return; }
       const e = EM(), auto = e.sumber === 'goldapi';
       el.innerHTML = '<div class="col emas-pg">' + goBack('#/') +
-        '<div class="gold-hero"><span class="gc-live"><i></i>' + (auto ? 'Harga otomatis' : 'Harga resmi toko') + '</span><h1>' + esc(T('harga_judul')) + '</h1><p>' + esc(String(T('harga_sub') || '').replace(/\s+di\s+[^—\-]+$/i, '').replace(new RegExp('\\s+di\\s+' + (toko() || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'), '')) + '</p>' +
+        '<div class="gold-hero"><span class="gc-live"><i></i>' + (auto ? 'Harga otomatis' : 'Harga acuan hari ini') + '</span><h1>' + esc(T('harga_judul')) + '</h1><p>' + esc(String(T('harga_sub') || '').replace(/\s+di\s+[^—\-]+$/i, '').replace(new RegExp('\\s+di\\s+' + (toko() || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'), '')) + '</p>' +
         '<div class="gh-main"><div><small>Emas murni (24K) / gram</small><b>' + rp(e.spot_emas) + '</b></div>' + trendChip() + '</div>' +
         '<div class="gh-meta">' + I('schedule') + 'Update: ' + esc(tgl(e.update) || 'hari ini') + (e.spot_perak ? ' · Perak murni ' + rp(e.spot_perak) + '/gr' : '') + '</div>' + riwayat() + '</div>' +
         '<div class="seg mt16" role="tablist"><button class="on" data-t="both">Jual & Buyback</button><button data-t="calc">Kalkulator</button></div>' +

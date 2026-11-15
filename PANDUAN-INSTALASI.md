@@ -439,6 +439,13 @@ Catatan Blogger:
 2. Memakai spreadsheet lama: tempel kelima berkas `.gs`, jalankan `setupAplikasi()` (menambah sheet Kadar, HargaLog, Member, Sewa, LelangKlaim & kolom produk baru) lalu **`gantiKeDataEmas()`**.
 3. Deploy **Versi baru**, unggah isi ZIP ke GitHub (tetap pakai `js/config.js` lama yang berisi URL), push. Blogger: pasang `tema-tokoemas.xml`.
 
+**Toko Emas v5** (notifikasi WA lebih andal + kirim manual, poster & widget halaman, Flash Sale dirapikan):
+1. Tempel ulang **`Kode.gs`**, **`Emas.gs`**, **`Notifikasi.gs`** → Deploy → **Versi baru**. Unggah ZIP baru ke GitHub (pertahankan `js/config.js`), pasang tema Blogger `?v=14`.
+2. Buka dasbor → **WhatsApp & Notifikasi**. Panel **Kesehatan notifikasi** di paling atas menunjukkan apa yang belum siap: token Fonnte, saklar WhatsApp, perangkat terhubung, **pemicu otomatis** (tekan *Pasang sekarang*), pesan tertunda/gagal beserta alasannya. Semua harus hijau agar member menerima WA otomatis.
+3. Notifikasi kini **langsung terkirim** saat kejadian (tidak lagi menunggu pemicu 1 menit). Bila WA otomatis belum aktif/gagal, pakai tombol **Kabari / Kode / Kirim kode** (WhatsApp terbuka dengan pesan siap kirim) di menu Sewa, Flash Sale, Lelang Live, dan Member.
+4. Kode Flash Sale baru berawalan **FS-** (kode lama LLG- tetap bisa ditukar). Kode **LLG-** khusus pemenang Lelang Live.
+5. Dasbor → **Poster & Widget Halaman**: widget harga emas di Katalog (on/off + pilih kadar), banner Flash Sale ringkas di Katalog/Galeri (on/off), dan poster di atas tiap halaman fitur (Katalog, Harga Emas, Jual Emas, Galeri, Flash Sale, Lelang Live, Layanan, Lokasi, Favorit, Akun).
+
 **Toko Emas v4** (Lelang Live, Flash Sale dengan booking, banner event baru, galeri rapi di HP, notifikasi di lonceng):
 1. Tempel ulang **`Kode.gs`**, **`Emas.gs`** dan **`Notifikasi.gs`**, jalankan **`setupAplikasi()`** (menambah sheet **LelangLive** & **Tawaran**, kolom `blacklist` di Member), lalu Deploy → **Versi baru**.
 2. Jalankan **`pasangTrigger()`** sekali (bila belum) agar lelang ditutup & pemenang dikirimi kode otomatis.

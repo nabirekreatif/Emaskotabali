@@ -65,13 +65,23 @@
     const hemat = items.map(p => (Number(p.harga) || 0) - (Number(p.harga_lelang) || 0)).filter(x => x > 0).sort((a, b) => b - a)[0] || 0;
     const target = L.aktif ? L.selesaiMs : L.mulaiMs, fotos = items.filter(p => (p.foto || [])[0]).slice(0, 3);
     return '<a class="ev-card ev-flash" href="#/flash-sale" data-ev="flash">' +
-      '<div class="ev-top"><span class="ev-tag">' + I('bolt', 'fill') + (L.aktif ? 'FLASH SALE' : 'SEGERA') + '</span><span class="ev-kind">' + I('lock_clock') + 'Stok dikunci saat diambil</span></div>' +
+      '<div class="ev-top"><span class="ev-tag">' + I('bolt', 'fill') + (L.aktif ? 'FLASH SALE' : 'SEGERA DIBUKA') + '</span>' + (L.aktif && sisa ? '<span class="ev-hot">' + I('local_fire_department', 'fill') + 'Sisa ' + sisa + ' barang</span>' : '') + '</div>' +
       '<div class="ev-body"><div class="ev-stack">' + (fotos.length ? fotos.map(p => '<img src="' + esc(img(p.foto[0], 200)) + '" alt="" loading="lazy">').join('') : '<span class="ph">' + I('bolt') + '</span>') + '</div>' +
       '<div class="ev-info"><h3>' + esc(L.judul || 'Flash Sale') + '</h3><p class="ev-desc">' + esc(L.sub || 'Harga spesial terbatas khusus member. Ambil kode, tukar di toko.') + '</p>' +
-      '<div class="ev-chips"><span>' + I('inventory_2') + items.length + ' produk</span>' + (L.aktif ? '<span>' + I('local_fire_department') + 'Sisa ' + sisa + '</span>' : '') + (hemat ? '<span class="sv">Hemat s/d ' + singkat(hemat) + '</span>' : '') + '</div></div></div>' +
+      '<div class="ev-chips"><span>' + items.length + ' produk</span>' + (hemat ? '<span class="sv">Hemat s/d ' + singkat(hemat) + '</span>' : '') + '</div></div></div>' +
       '<div class="ev-foot"><div class="ev-cd"><small>' + (L.aktif ? (target ? 'Berakhir dalam' : 'Selama stok ada') : 'Dibuka dalam') + '</small>' + (target ? '<div class="cdbox" data-cdb="' + target + '" data-cdend="1">' + kotak(target - Date.now()) + '</div>' : '') + '</div>' +
       '<span class="ev-cta">' + (L.aktif ? 'Ambil Promo' : 'Lihat Produk') + I('arrow_forward') + '</span></div></a>';
   }
+  /* banner Flash Sale ringkas di Katalog & Galeri (Dasbor → Poster & Widget) */
+  A.slots && A.slots.push(function fsmini(name) {
+    const k = { katalog: 'flash_di_katalog', galeri: 'flash_di_galeri' }[name]; if (!k || String(T(k)).toUpperCase() === 'TIDAK') return null;
+    const L = A.lelangState ? A.lelangState() : {}; if (!L.nyala || (!L.aktif && !L.akanDatang)) return null;
+    const items = ((A.pub && A.pub.products) || []).filter(p => p.lelang), target = L.aktif ? L.selesaiMs : L.mulaiMs;
+    if (!items.length) return null;
+    const hemat = items.map(p => (Number(p.harga) || 0) - (Number(p.harga_lelang) || 0)).filter(x => x > 0).sort((a, b) => b - a)[0] || 0;
+    return { key: 'fsmini', after: ['.pg-slot[data-slot="kgold"]', '.kat-title + p', '.gal-hero'], html: '<a class="fs-mini" href="#/flash-sale"><span class="fsm-ic">' + I('bolt', 'fill') + '</span><div class="fsm-t"><b class="ell">' + esc(L.judul || 'Flash Sale') + '</b><small>' + (L.aktif ? items.length + ' produk' + (hemat ? ' · hemat s/d ' + singkat(hemat) : '') : 'Segera dibuka') + '</small></div>' +
+      (target ? '<div class="fsm-cd"><small>' + (L.aktif ? 'Berakhir' : 'Mulai') + '</small><span class="cdbox sm" data-cdb="' + target + '">' + kotak(target - Date.now()) + '</span></div>' : '') + '<span class="fsm-go">' + I('arrow_forward') + '</span></a>' };
+  });
   if (A.SECTIONS) A.SECTIONS.lelang = () => { const g = grup(), h = kartuLive(g) + kartuFlash(); return h ? '<div class="ev-wrap">' + h + '</div>' : ''; };
   // hitung mundur habis → gambar ulang (status berganti: segera → live → selesai)
   setInterval(() => {

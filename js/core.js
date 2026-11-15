@@ -106,6 +106,7 @@
     warna_garis: '#EDE4D6', warna_harga: '#8A6420', warna_wa: '#25D366', warna_sosmed: '#1C1712', warna_header: '#FFFFFF',
     keranjang_aktif: 'TIDAK', kartu_badge: 'YA', tombol_tambah: 'Tambah', keranjang_judul: 'Pesanan Saya', keranjang_jenis: 'Makan di tempat, Bawa pulang, Diantar',
     keranjang_catatan: 'Ongkir pesan antar dihitung admin sesuai jarak. Pembayaran dikonfirmasi lewat WhatsApp.',
+    kat_harga_tampil: 'YA', kat_harga_kadar: '24K, 22K, 18K, 17K', flash_di_katalog: 'YA', flash_di_galeri: 'YA',
     harga_judul: 'Harga Emas Hari Ini', harga_sub: 'Harga jual & buyback per gram — acuan harga hari ini', harga_bio_kadar: '24K, 22K, 18K, 17K',
     kg_judul: '', kg_gaya: 'kartu',
     galeri_custom_judul: 'Galeri Pesanan Custom', galeri_custom_sub: 'Contoh perhiasan custom & pesanan pelanggan kami. Pilih model, lalu tanyakan lewat WhatsApp.',
@@ -122,7 +123,7 @@
     bid_judul: 'Lelang Live', bid_sub: 'Tawar perhiasan pilihan mulai harga spesial. Penawar tertinggi saat waktu habis jadi pemenang.', bid_extend_menit: '2', bid_batas_jam: '3',
     bid_syarat: 'Bersedia datang ke toko & melunasi maksimal 3 jam setelah lelang ditutup\nMembawa KTP & menunjukkan kode pemenang\nPemenang yang tidak datang otomatis hangus & masuk daftar hitam lelang berikutnya',
     lelang_kosong_judul: 'Belum Ada Lelang Saat Ini', lelang_kosong_teks: 'Lelang dibuka saat event spesial seperti Jumat Berkah. Daftar member & lengkapi syarat dari sekarang agar siap ikut.',
-    member_judul: 'Akun Member', member_sub: 'Daftar cukup dengan nomor HP. Member bisa menyewa perhiasan & ikut lelang spesial.',
+    member_judul: 'Akun Member', member_sub: 'Daftar cukup dengan nomor HP. Member bisa menyewa perhiasan, ambil promo Flash Sale & ikut Lelang Live.',
     sewa_catatan: 'Penyewaan wajib member & KTP asli saat pengambilan. Deposit dikembalikan setelah barang kembali dalam kondisi baik.',
     teks_pesan_keranjang: 'Halo {toko} {cabang}, saya mau pesan:\n{daftar}\n\n*Total: {total}*\nJenis: {jenis}\nNama: {nama}{alamat}{catatan}\n\nTerima kasih!'
   };
@@ -447,7 +448,28 @@
   App._navCount = 0;
   App.rerender = function () {
     Object.keys(App.pages).forEach(k => App.dirty[k] = true);
-    const def = App.pages[App.cur]; if (def) { App.dirty[App.cur] = false; def.render(pageEl(App.cur), App.param, true); }
+    const def = App.pages[App.cur]; if (def) { App.dirty[App.cur] = false; def.render(pageEl(App.cur), App.param, true); App.applySlots(pageEl(App.cur), App.cur, App.param); }
+  };
+  /* Slot halaman: modul lain (poster, widget harga, banner Flash Sale) menyisipkan blok di atas isi halaman.
+     fn(name, param) → { key, html, after } — after = selektor elemen yang disisipi sesudahnya (default: awal kontainer). */
+  App.slots = [];
+  App.POSTER_PAGES = [['katalog', 'Katalog'], ['harga-emas', 'Harga Emas'], ['jual-emas', 'Jual Emas'], ['galeri', 'Galeri'], ['flash-sale', 'Flash Sale'], ['lelang', 'Lelang Live'], ['layanan', 'Layanan'], ['lokasi', 'Lokasi'], ['favorit', 'Favorit'], ['akun', 'Akun Member']];
+
+  App.applySlots = function (el, name, param, ulang) {
+    if (!el || !App.pub) return;
+    if (!ulang) [700, 2500].forEach(t => setTimeout(() => { if (App.cur === name) App.applySlots(el, name, App.param, true); }, t));
+    const box = el.firstElementChild; if (!box) return;
+    App.slots.forEach(fn => {
+      let o = null; try { o = fn(name, param); } catch (e) { o = null; }
+      const key = (o && o.key) || fn._key || (fn._key = 's' + Math.random().toString(36).slice(2, 7));
+      const old = el.querySelector('.pg-slot[data-slot="' + key + '"]');
+      if (!o || !o.html) { if (old) old.remove(); return; }
+      if (old && old.dataset.h === String(hashStr(o.html))) return;
+      const w = document.createElement('div'); w.className = 'pg-slot'; w.dataset.slot = key; w.dataset.h = hashStr(o.html); w.innerHTML = o.html;
+      if (old) { old.replaceWith(w); return; }
+      const ref = [].concat(o.after || []).map(q => box.querySelector(q)).find(Boolean);
+      if (ref) ref.after(w); else box.prepend(w);
+    });
   };
   function pageEl(name) {
     let el = document.querySelector('.page[data-page="' + name + '"]');
@@ -471,6 +493,7 @@
     document.body.classList.toggle('is-admin', !!def.admin);
     document.body.classList.remove('has-sticky');
     if (def.render) def.render(el, param, false, changed);
+    if (!def.admin) App.applySlots(el, name, param);
     App.dirty[name] = false;
     $$('[data-nav]').forEach(a => a.classList.toggle('on', a.dataset.nav === (def.nav || name)));
     document.body.classList.toggle('no-bnav', !def.admin && !!(pn0() && pn0().dataset.off === '1'));   // dasbor punya navigasi bawah sendiri
