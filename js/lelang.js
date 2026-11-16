@@ -168,7 +168,7 @@
       const q = window.QR ? QR.svg(win.kode, { ecl: 'M' }) : '';
       return '<div class="card pad mt12 win-ticket"><div class="wt-h">' + I('emoji_events', 'fill') + '<div><b>' + (win.status === 'dibayar' ? 'Lunas — terima kasih!' : 'Selamat, Anda pemenang!') + '</b><small>Harga final ' + rp(win.harga) + '</small></div></div>' +
         (win.status === 'menunggu_bayar' ? '<div class="qr-big">' + q + '</div><div class="kode">' + esc(win.kode) + '</div><p class="small center">Datang ke <b>' + esc(cabNama(win.cabang)) + '</b> sebelum <b>' + esc(tgl(win.batas_bayar)) + '</b>. Tunjukkan kode ini + KTP ke kasir & lunasi.</p>' +
-          '<div class="note amber mt8">' + I('warning') + '<div>Tidak datang sampai batas waktu → kode hangus, lot dialihkan ke penawar cadangan & akun masuk daftar hitam lelang.</div></div><button class="btn btn-ghost btn-block mt8" data-copy="' + esc(win.kode) + '">' + I('content_copy') + 'Salin kode</button>'
+          '<div class="note amber mt8">' + I('warning') + '<div>Tidak datang sampai batas waktu → kode hangus, lot dialihkan ke penawar cadangan & akun masuk daftar hitam lelang.</div></div><button class="btn btn-amber btn-block mt8" data-unduh>' + I('download') + 'Unduh tiket pemenang</button><button class="btn btn-ghost btn-block mt8" data-copy="' + esc(win.kode) + '">' + I('content_copy') + 'Salin kode</button>'
           : '<p class="center"><span class="chip ' + (win.status === 'dibayar' ? 'chip-ok' : 'chip-no') + '">' + esc(win.status === 'dibayar' ? 'Sudah lunas' : 'Kode hangus') + '</span></p>') + '</div>';
     }
     if (s === 'tutup') return '<div class="note mt12">' + I('hourglass_top') + '<div><b>Lelang ditutup.</b> Sistem sedang menentukan pemenang — kode dikirim ke WhatsApp pemenang.</div></div>';
@@ -188,6 +188,7 @@
   function bindZona(el, b, id, min, kel) {
     const lg = el.querySelector('[data-login]'); if (lg) lg.onclick = () => { if (A.needLogin) A.needLogin('lelang/' + id); else A.go('akun'); };
     const cp = el.querySelector('.win-ticket [data-copy]'); if (cp) cp.onclick = () => Promise.resolve().then(() => navigator.clipboard.writeText(cp.dataset.copy)).then(() => A.toast('Kode disalin'), () => A.toast('Salin manual: ' + cp.dataset.copy, 'info'));
+    const ud = el.querySelector('.win-ticket [data-unduh]'); if (ud) { const me = Mem().me(), w = ((me && me.menang) || []).find(z => z.id === id); if (w) ud.onclick = () => A.unduhTiket({ jenis: 'PEMENANG LELANG', judul: w.produk_nama, kode: w.kode, baris: [['Harga final', rp(w.harga)], ['Lunasi di', cabNama(w.cabang)], ['Batas datang', tgl(w.batas_bayar)], ['Atas nama', (me.member && me.member.nama) || '']] }, ud); }
     const cb = el.querySelector('[data-setuju]'), btn = el.querySelector('[data-tawar]'); if (!cb || !btn) return;
     let step = 1;
     cb.onchange = () => { A.Store.ss(ssKey(id), cb.checked ? '1' : ''); detail(el, id); };

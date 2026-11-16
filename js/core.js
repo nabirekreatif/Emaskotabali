@@ -69,7 +69,7 @@
     { id: 'tema', label: 'Mode gelap', icon: 'dark_mode', link: 'aksi:tema', sys: 1 }, { id: 'share', label: 'Bagikan', icon: 'share', link: 'aksi:share', sys: 1 },
     { id: 'keranjang', label: 'Pesanan', icon: 'shopping_bag', link: 'keranjang', sys: 1 },
     { id: 'harga', label: 'Harga Emas Hari Ini', icon: 'monitoring', link: '#/harga-emas', sys: 1 }, { id: 'jualemas', label: 'Jual Emas (Buyback)', icon: 'currency_exchange', link: '#/jual-emas', sys: 1 },
-    { id: 'lelang', label: 'Lelang Live', icon: 'gavel', link: '#/lelang', sys: 1 }, { id: 'flash', label: 'Flash Sale', icon: 'bolt', link: '#/flash-sale', sys: 1 }, { id: 'akun', label: 'Akun Member', icon: 'account_circle', link: '#/akun', sys: 1 },
+    { id: 'lelang', label: 'Lelang Live', icon: 'gavel', link: '#/lelang', sys: 1 }, { id: 'flash', label: 'Flash Sale', icon: 'bolt', link: '#/flash-sale', sys: 1 }, { id: 'ukur', label: 'Ukur Cincin', icon: 'straighten', link: '#/ukur-cincin', sys: 1 }, { id: 'chat', label: 'Chat dengan Kami', icon: 'forum', link: '#/chat', sys: 1 }, { id: 'akun', label: 'Akun Member', icon: 'account_circle', link: '#/akun', sys: 1 },
     { id: 'galeri', label: 'Galeri Pesanan Custom', icon: 'photo_library', link: '#/galeri/custom', sys: 1 }, { id: 'galeripo', label: 'Galeri Pre-Order', icon: 'collections', link: '#/galeri/po', sys: 1 },
     { id: 'favorit', label: 'Favorit Saya', icon: 'favorite', link: '#/favorit', sys: 1 }];
   const HDR_DEF = [{ id: 'install', tampil: true }, { id: 'cs', tampil: true }, { id: 'tema', tampil: false }];
@@ -188,7 +188,7 @@
     if (/^aksi:/.test(l)) return { href: '#', attr: ' data-act="' + l.slice(5) + '"' + (l === 'aksi:menu' ? ' data-menu' : '') };
     if (/^kat:/.test(l)) return { href: '#/katalog/' + encodeURIComponent('k:' + l.slice(4)), attr: ' data-nav="katalog"' };
     if (/^cari:/.test(l)) return { href: '#/katalog/' + encodeURIComponent('q:' + l.slice(5)), attr: ' data-nav="katalog"' };
-    if (/^#\//.test(l)) { const nv = { '#/harga-emas': 'harga', '#/jual-emas': 'jualemas', '#/lelang': 'lelang', '#/flash-sale': 'flash', '#/akun': 'akun', '#/favorit': 'favorit', '#/galeri/custom': 'galeri', '#/galeri/po': 'galeripo' }[l] || (/^#\/galeri\/[\w-]+$/.test(l) ? 'galeri-' + l.slice(9) : ''); return { href: l, attr: nv ? ' data-nav="' + nv + '"' : '' }; }
+    if (/^#\//.test(l)) { const nv = { '#/harga-emas': 'harga', '#/jual-emas': 'jualemas', '#/lelang': 'lelang', '#/flash-sale': 'flash', '#/ukur-cincin': 'ukur-cincin', '#/chat': 'chat', '#/akun': 'akun', '#/favorit': 'favorit', '#/galeri/custom': 'galeri', '#/galeri/po': 'galeripo' }[l] || (/^#\/galeri\/[\w-]+$/.test(l) ? 'galeri-' + l.slice(9) : ''); return { href: l, attr: nv ? ' data-nav="' + nv + '"' : '' }; }
     if (/^#./.test(l)) return { href: '#/katalog/' + encodeURIComponent('q:' + l.slice(1)), attr: ' data-nav="katalog"' };
     if (/^(https?:|mailto:|tel:)/i.test(l)) return { href: l, attr: ' target="_blank" rel="noopener"' };
     if (/^wa\.me|^[\w-]+(\.[\w-]+)+/i.test(l)) return { href: 'https://' + l, attr: ' target="_blank" rel="noopener"' };
@@ -453,7 +453,7 @@
   /* Slot halaman: modul lain (poster, widget harga, banner Flash Sale) menyisipkan blok di atas isi halaman.
      fn(name, param) → { key, html, after } — after = selektor elemen yang disisipi sesudahnya (default: awal kontainer). */
   App.slots = [];
-  App.POSTER_PAGES = [['katalog', 'Katalog'], ['harga-emas', 'Harga Emas'], ['jual-emas', 'Jual Emas'], ['galeri', 'Galeri'], ['flash-sale', 'Flash Sale'], ['lelang', 'Lelang Live'], ['layanan', 'Layanan'], ['lokasi', 'Lokasi'], ['favorit', 'Favorit'], ['akun', 'Akun Member']];
+  App.POSTER_PAGES = [['katalog', 'Katalog'], ['harga-emas', 'Harga Emas'], ['jual-emas', 'Jual Emas'], ['galeri', 'Galeri'], ['flash-sale', 'Flash Sale'], ['lelang', 'Lelang Live'], ['layanan', 'Layanan'], ['lokasi', 'Lokasi'], ['favorit', 'Favorit'], ['akun', 'Akun Member'], ['ukur-cincin', 'Ukur Cincin']];
 
   App.applySlots = function (el, name, param, ulang) {
     if (!el || !App.pub) return;

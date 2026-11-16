@@ -439,6 +439,18 @@ Catatan Blogger:
 2. Memakai spreadsheet lama: tempel kelima berkas `.gs`, jalankan `setupAplikasi()` (menambah sheet Kadar, HargaLog, Member, Sewa, LelangKlaim & kolom produk baru) lalu **`gantiKeDataEmas()`**.
 3. Deploy **Versi baru**, unggah isi ZIP ke GitHub (tetap pakai `js/config.js` lama yang berisi URL), push. Blogger: pasang `tema-tokoemas.xml`.
 
+**Logo KB (v6.1):** ikon aplikasi, favicon, logo profil & logo login dasbor kini memakai logo **tas belanja emas + KB** (`assets/logo.png`, `logo.svg`, `logo-transparan.png`, `logo-horizontal.png`, `icon-*.png`). Unggah ulang isi ZIP ke GitHub; pengguna lama mungkin perlu memasang ulang aplikasi (PWA) agar ikon di layar HP ikut berganti. Bila di dasbor Anda mengisi Logo sendiri, logo itu yang dipakai.
+
+**Toko Emas v6** (Chat pelanggan + AI, unduh tiket kode, halaman Ukur Cincin):
+1. Tambahkan berkas baru **`Chat.gs`** ke proyek Apps Script (File → + → Script, beri nama `Chat`, tempel isinya). Tempel ulang **`Kode.gs`**, **`Emas.gs`**, **`Notifikasi.gs`**, jalankan **`setupAplikasi()`** (menambah sheet **Chat** & **ChatSesi**), lalu Deploy → **Versi baru**. Unggah ZIP ke GitHub, pasang tema Blogger `?v=15`.
+2. **Chat Pelanggan** (dasbor → Chat Pelanggan, khusus superadmin untuk pengaturan):
+   - **Aktifkan chat** → tombol chat muncul di pojok kanan bawah situs.
+   - **Cara menjawab:** *Bot otomatis* (gratis, instan — menjawab harga emas, katalog, galeri, layanan, lokasi, promo, ukur cincin dari data toko) · *Asisten AI* (Google Gemini) · *Admin balas manual*.
+   - **Izinkan "Bicara dengan admin"**: pelanggan bisa beralih ke admin kapan saja; admin menerima notifikasi WA (event "Chat pelanggan minta dibalas admin") dan membalas dari daftar **Percakapan**. Balasan muncul di chat pelanggan dalam ±5 detik.
+   - **Asisten AI gratis:** buka https://aistudio.google.com/apikey → login Google → *Create API key* → salin → tempel di kartu **Kunci API AI** → *Simpan kunci* → *Uji AI*. Kunci tersimpan di Script Properties (`GEMINI_KEY`), tidak pernah tampil di situs. Kuota gratis terbatas per menit/hari; bila habis atau gagal, chat otomatis memakai bot data toko. Pada paket gratis Google dapat memakai isi percakapan untuk meningkatkan layanannya — jangan minta data sensitif lewat chat.
+3. **Unduh tiket:** pelanggan yang mendapat kode Flash Sale (FS-…) atau menang Lelang Live (LLG-…) bisa menekan **Unduh tiket** → tersimpan gambar PNG berisi QR, kode, harga, cabang & batas waktu. Kasir cukup memindai/membaca kodenya.
+4. **Ukur Cincin** (`#/ukur-cincin`): 3 cara — lingkar jari, diameter cincin lama, ukur di layar (kalibrasi kartu ATM). Hasil (perkiraan EU/US) bisa dikirim ke WhatsApp toko. Tautan otomatis muncul di detail produk cincin; tambahkan juga ke menu link bio (Tampilan → Menu → "Ukur Cincin") dan poster halaman bila perlu.
+
 **Toko Emas v5** (notifikasi WA lebih andal + kirim manual, poster & widget halaman, Flash Sale dirapikan):
 1. Tempel ulang **`Kode.gs`**, **`Emas.gs`**, **`Notifikasi.gs`** → Deploy → **Versi baru**. Unggah ZIP baru ke GitHub (pertahankan `js/config.js`), pasang tema Blogger `?v=14`.
 2. Buka dasbor → **WhatsApp & Notifikasi**. Panel **Kesehatan notifikasi** di paling atas menunjukkan apa yang belum siap: token Fonnte, saklar WhatsApp, perangkat terhubung, **pemicu otomatis** (tekan *Pasang sekarang*), pesan tertunda/gagal beserta alasannya. Semua harus hijau agar member menerima WA otomatis.

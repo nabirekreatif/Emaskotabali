@@ -95,7 +95,7 @@
   }
   A.lelangState = lelangState;
   const bidAda = () => ((A.pub && A.pub.bid) || []).some(b => ['terjadwal', 'berlangsung', 'tutup'].indexOf(b.status) > -1 || (b.status === 'menunggu_bayar'));
-  A.menuOk = m => (m.id === 'lelang' || m.link === '#/lelang') ? bidAda() : (m.id === 'flash' || m.link === '#/flash-sale') ? !!(A.pub && A.pub.lelang && A.pub.lelang.nyala && (!A.pub.lelang.selesai || new Date(A.pub.lelang.selesai).getTime() > Date.now())) : true;
+  A.menuOk = m => (m.id === 'chat' || m.link === '#/chat') ? String(T('chat_aktif')).toUpperCase() === 'YA' : (m.id === 'lelang' || m.link === '#/lelang') ? bidAda() : (m.id === 'flash' || m.link === '#/flash-sale') ? !!(A.pub && A.pub.lelang && A.pub.lelang.nyala && (!A.pub.lelang.selesai || new Date(A.pub.lelang.selesai).getTime() > Date.now())) : true;
   function sisaWaktu(ms) {
     if (ms <= 0) return '0d';
     const d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5), m = Math.floor(ms % 36e5 / 6e4), s = Math.floor(ms % 6e4 / 1e3);
@@ -291,8 +291,49 @@
       '<p class="muted">' + esc(k.produk_nama) + ' · <b>' + rp(k.harga) + '</b></p><div class="qr-big">' + q + '</div><div class="kode">' + esc(k.kode) + '</div>' +
       '<p class="small">Tunjukkan kode ini + KTP di <b>' + esc(cabNama(k.cabang)) + '</b>' + (k.batas_tukar ? ' sebelum ' + esc(tgl(k.batas_tukar)) : '') + '.</p>' +
       '<span class="chip ' + (k.status === 'Ditukar' ? 'chip-ok' : k.status === 'Batal' ? 'chip-no' : 'chip-amber') + '">' + esc(k.status) + '</span>' +
-      '<button class="btn btn-ghost btn-block mt12" data-copy="' + esc(k.kode) + '">' + I('content_copy') + 'Salin kode</button></div>', { title: 'Kode Flash Sale', center: true });
+      (k.status !== 'Batal' ? '<button class="btn btn-amber btn-block mt12" data-unduh>' + I('download') + 'Unduh tiket (gambar)</button>' : '') +
+      '<button class="btn btn-ghost btn-block mt8" data-copy="' + esc(k.kode) + '">' + I('content_copy') + 'Salin kode</button></div>', { title: 'Kode Flash Sale', center: true });
+    const u = document.querySelector('.overlay .kode-box [data-unduh]');
+    if (u) u.onclick = () => A.unduhTiket({ jenis: 'FLASH SALE', judul: k.produk_nama, kode: k.kode, baris: [['Harga', rp(k.harga)], ['Tukar di', cabNama(k.cabang)], ['Batas tukar', k.batas_tukar ? tgl(k.batas_tukar) : '-'], ['Atas nama', (Mem.me() && Mem.me().member && Mem.me().member.nama) || '']] }, u);
   }
+  /* ---------- unduh tiket kode (PNG berisi QR) — memudahkan penukaran di toko ---------- */
+  A.unduhTiket = async function (t, btn) {
+    try {
+      if (btn) btn.disabled = true;
+      const W = 1080, H = 1560, c = document.createElement('canvas'); c.width = W; c.height = H;
+      const x = c.getContext('2d'), toko = T('nama_toko') || 'Toko Emas';
+      const rr = (X, Y, w, h, r) => { x.beginPath(); x.moveTo(X + r, Y); x.arcTo(X + w, Y, X + w, Y + h, r); x.arcTo(X + w, Y + h, X, Y + h, r); x.arcTo(X, Y + h, X, Y, r); x.arcTo(X, Y, X + w, Y, r); x.closePath(); };
+      const bg = x.createLinearGradient(0, 0, W, H); bg.addColorStop(0, '#1C1712'); bg.addColorStop(.55, '#3A2A10'); bg.addColorStop(1, '#8A6420'); x.fillStyle = bg; x.fillRect(0, 0, W, H);
+      x.fillStyle = '#FFFDF7'; rr(60, 230, W - 120, H - 330, 44); x.fill();
+      const gold = x.createLinearGradient(0, 0, W, 0); gold.addColorStop(0, '#B8892B'); gold.addColorStop(.5, '#F0D98C'); gold.addColorStop(1, '#B8892B');
+      x.textAlign = 'center'; x.fillStyle = gold; x.font = '800 54px system-ui, sans-serif'; x.fillText(toko, W / 2, 110);
+      x.fillStyle = '#FACC15'; rr(W / 2 - 170, 140, 340, 56, 28); x.fill(); x.fillStyle = '#1C1712'; x.font = '800 28px system-ui, sans-serif'; x.fillText(t.jenis || 'KODE', W / 2, 178);
+      x.fillStyle = '#5B1414'; x.font = '700 46px system-ui, sans-serif';
+      const judul = String(t.judul || ''), jl = judul.length > 30 ? judul.slice(0, 29) + '…' : judul; x.fillText(jl, W / 2, 320);
+      // QR
+      const svg = window.QR ? QR.svg(t.kode, { ecl: 'M' }) : '';
+      if (svg) {
+        const im = new Image(), url = URL.createObjectURL(new Blob([svg.replace('<svg ', '<svg width="560" height="560" ')], { type: 'image/svg+xml' }));
+        await new Promise((ok, no) => { im.onload = ok; im.onerror = no; im.src = url; });
+        x.fillStyle = '#fff'; rr(W / 2 - 310, 370, 620, 620, 28); x.fill(); x.strokeStyle = '#E8D9B0'; x.lineWidth = 4; x.stroke();
+        x.drawImage(im, W / 2 - 280, 400, 560, 560); URL.revokeObjectURL(url);
+      }
+      x.fillStyle = '#1C1712'; x.font = '800 72px ui-monospace, Menlo, monospace'; x.fillText(t.kode, W / 2, 1090);
+      x.setLineDash([14, 12]); x.strokeStyle = '#D6C08A'; x.lineWidth = 3; x.beginPath(); x.moveTo(110, 1130); x.lineTo(W - 110, 1130); x.stroke(); x.setLineDash([]);
+      x.textAlign = 'left'; let y = 1190;
+      (t.baris || []).filter(b => b[1]).slice(0, 5).forEach(b => { x.fillStyle = '#8A7A5A'; x.font = '500 32px system-ui, sans-serif'; x.fillText(b[0], 120, y); x.fillStyle = '#1C1712'; x.font = '700 34px system-ui, sans-serif'; x.textAlign = 'right'; x.fillText(String(b[1]).slice(0, 34), W - 120, y); x.textAlign = 'left'; y += 56; });
+      x.textAlign = 'center'; x.fillStyle = '#8A7A5A'; x.font = '500 28px system-ui, sans-serif'; x.fillText('Tunjukkan tiket ini + KTP kepada kasir', W / 2, H - 140);
+      x.fillStyle = 'rgba(255,255,255,.75)'; x.font = '500 26px system-ui, sans-serif'; x.fillText(location.host || '', W / 2, H - 40);
+      const blob = await new Promise(ok => c.toBlob(ok, 'image/png'));
+      const nama = 'tiket-' + String(t.kode).replace(/[^A-Z0-9-]/gi, '') + '.png';
+      const file = window.File ? new File([blob], nama, { type: 'image/png' }) : null;
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nama; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      A.toast('Tiket diunduh — simpan di galeri HP Anda', 'ok');
+      return file;
+    } catch (e) { A.toast('Gagal membuat tiket. Coba screenshot layar ini.', 'err'); }
+    finally { if (btn) btn.disabled = false; }
+  };
   document.addEventListener('click', e => { const c = e.target.closest('.kode-box [data-copy]'); if (!c) return; Promise.resolve().then(() => navigator.clipboard.writeText(c.dataset.copy)).then(() => A.toast('Kode disalin'), () => A.toast('Salin manual: ' + c.dataset.copy, 'info')); });
 
   /* ======================= HALAMAN: AKUN MEMBER ======================= */

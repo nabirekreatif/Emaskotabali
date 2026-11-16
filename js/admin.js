@@ -45,6 +45,7 @@
     { id: 'produk', t: 'Produk & Katalog', i: 'diamond', all: 1 },
     { g: 'Toko Emas' },
     { id: 'emas', t: 'Harga Emas', i: 'monitoring', all: 1 },
+    { id: 'chat', t: 'Chat Pelanggan', i: 'forum', all: 1 },
     { id: 'bid', t: 'Lelang Live', i: 'gavel', all: 1 },
     { id: 'lelang', t: 'Flash Sale', i: 'bolt', all: 1 },
     { id: 'galeri', t: 'Galeri Foto', i: 'photo_library', all: 1 },
@@ -195,7 +196,7 @@
   VIEWS.menu = function (m) {
     const groups = []; let cur = { g: 'Utama', it: [] }; groups.push(cur);
     MENU.forEach(x => { if (x.hide) return; if (x.g) { if (!isSA() && x.g !== 'Toko Emas') return; cur = { g: x.g, it: [] }; groups.push(cur); return; } if (x.all || isSA()) cur.it.push(x); });
-    const DESK = { beranda: 'Ringkasan & statistik', produk: 'Tambah, edit, stok & harga', emas: 'Harga per kadar, manual / otomatis', bid: 'Sesi tawar live, pemenang & kode', halaman: 'Poster tiap halaman, widget harga & banner promo', lelang: 'Promo cepat, booking & tukar kode', galeri: 'Custom, Pre-Order, Ready Stock, Perak & galeri baru', watermark: 'Logo/teks otomatis di setiap foto', sistem: 'Status API, kapasitas, backup & pemulihan', sewa: 'Pengajuan sewa member', member: 'Verifikasi KTP, nota & lelang', tampilan: 'Bagian, menu, warna & teks', banner: 'Foto promo bergeser', popup: 'Gambar pop-up saat dibuka', bayar: 'Rekening & QRIS', cabang: 'Outlet, WA & sosmed', layanan: 'Halaman layanan', notif: 'Blast & notifikasi WA', crm: 'Data kontak pelanggan', pengguna: 'Akun admin outlet', migrasi: 'Impor data lama', log: 'Riwayat perubahan', akun: 'Profil & ganti sandi' };
+    const DESK = { beranda: 'Ringkasan & statistik', produk: 'Tambah, edit, stok & harga', emas: 'Harga per kadar, manual / otomatis', bid: 'Sesi tawar live, pemenang & kode', chat: 'Balas chat, bot otomatis & asisten AI', halaman: 'Poster tiap halaman, widget harga & banner promo', lelang: 'Promo cepat, booking & tukar kode', galeri: 'Custom, Pre-Order, Ready Stock, Perak & galeri baru', watermark: 'Logo/teks otomatis di setiap foto', sistem: 'Status API, kapasitas, backup & pemulihan', sewa: 'Pengajuan sewa member', member: 'Verifikasi KTP, nota & lelang', tampilan: 'Bagian, menu, warna & teks', banner: 'Foto promo bergeser', popup: 'Gambar pop-up saat dibuka', bayar: 'Rekening & QRIS', cabang: 'Outlet, WA & sosmed', layanan: 'Halaman layanan', notif: 'Blast & notifikasi WA', crm: 'Data kontak pelanggan', pengguna: 'Akun admin outlet', migrasi: 'Impor data lama', log: 'Riwayat perubahan', akun: 'Profil & ganti sandi' };
     m.innerHTML = '<div class="adm-me"><span class="avatar-i">' + esc((A.user.nama || 'A').slice(0, 1).toUpperCase()) + '</span><div class="grow"><b class="ell">' + esc(A.user.nama) + '</b><span class="muted tiny">' + (isSA() ? 'Superadmin' : 'Admin ' + cabNama(A.user.cabang)) + '</span></div><a class="btn btn-ghost btn-sm" href="#/akun">' + I('person') + 'Akun</a></div>' +
       groups.filter(g => g.it.length).map(g => '<div class="adm-grp">' + esc(g.g) + '</div><div class="adm-tiles">' + g.it.map(x => '<a href="#/' + x.id + '">' + I(x.i) + '<b>' + esc(x.t) + '</b><small>' + esc(DESK[x.id] || '') + '</small></a>').join('') + '</div>').join('') +
       '<div class="adm-grp">Lainnya</div><div class="adm-tiles"><a href="' + SITUS() + '" target="_blank">' + I('open_in_new') + '<b>Lihat Link Bio</b><small>Buka halaman publik</small></a><button data-nk-license>' + I('key') + '<b>Lisensi</b><small>Aktivasi template</small></button>' +
@@ -841,7 +842,7 @@
   }
   A.notifPanel = function () {
     const it = (notifData && notifData.items) || [], on = Store.get('suara', 'ya') === 'ya';
-    const o = A.sheet('<div class="list">' + (it.length ? it.map(x => '<a class="li" href="#/' + x.ke + '" data-x><span class="avatar-i">' + I({ sewa: 'event_available', lelang: 'bolt', bid: 'gavel', member: 'verified_user' }[x.jenis] || 'notifications') + '</span><div class="grow"><b class="ell">' + esc(x.teks) + '</b><div class="meta">' + esc(tgl(x.waktu)) + '</div></div>' + I('chevron_right') + '</a>').join('') : '<div class="empty">' + I('notifications_off') + '<p>Tidak ada yang perlu ditindaklanjuti.</p></div>') + '</div>' +
+    const o = A.sheet('<div class="list">' + (it.length ? it.map(x => '<a class="li" href="#/' + x.ke + '" data-x><span class="avatar-i">' + I({ sewa: 'event_available', lelang: 'bolt', bid: 'gavel', chat: 'forum', member: 'verified_user' }[x.jenis] || 'notifications') + '</span><div class="grow"><b class="ell">' + esc(x.teks) + '</b><div class="meta">' + esc(tgl(x.waktu)) + '</div></div>' + I('chevron_right') + '</a>').join('') : '<div class="empty">' + I('notifications_off') + '<p>Tidak ada yang perlu ditindaklanjuti.</p></div>') + '</div>' +
       '<label class="row mt12" style="justify-content:space-between;padding:6px 2px"><span><b style="font:600 14px var(--f-body)">Suara notifikasi</b><div class="muted small">Bunyi + getar saat ada sewa, klaim Flash Sale, pemenang lelang atau member baru</div></span><span class="switch"><input type="checkbox" data-snd' + (on ? ' checked' : '') + '><i></i></span></label>' +
       '<button class="btn btn-ghost btn-block mt8" data-test>' + I('volume_up') + 'Tes suara</button>', { title: 'Notifikasi' });
     o.querySelector('[data-snd]').onchange = e => { Store.set('suara', e.target.checked ? 'ya' : 'tidak'); if (e.target.checked) A.sound('ok'); };
@@ -1093,6 +1094,80 @@
     };
   }
 
+
+
+  /* ======================= CHAT PELANGGAN ======================= */
+  let chatTimer = null, chatAktif = '';
+  VIEWS.chat = function (m) {
+    const sa = isSA(), s = vals();
+    clearInterval(chatTimer);
+    const md = { bot: 'Bot otomatis (data toko)', ai: 'Asisten AI (Gemini)', admin: 'Admin balas manual' }[s.chat_mode || 'bot'];
+    m.innerHTML = head('Chat Pelanggan') +
+      '<div class="note ' + (String(s.chat_aktif).toUpperCase() === 'YA' ? '' : 'amber') + '">' + I(String(s.chat_aktif).toUpperCase() === 'YA' ? 'forum' : 'chat_bubble_outline') + '<div>' + (String(s.chat_aktif).toUpperCase() === 'YA' ? 'Chat <b>aktif</b> · mode: <b>' + esc(md) + '</b>' + (s.chat_mode !== 'admin' && String(s.chat_admin || 'YA').toUpperCase() !== 'TIDAK' ? ' · pelanggan bisa minta bicara dengan admin' : '') : 'Chat <b>belum aktif</b>. ' + (sa ? 'Nyalakan di pengaturan di bawah.' : 'Minta superadmin menyalakannya.')) + '</div></div>' +
+      '<div class="panel"><div class="panel-h"><h3>' + I('inbox') + 'Percakapan</h3><button class="btn btn-ghost btn-sm" data-rf>' + I('refresh') + 'Muat ulang</button></div><div class="pills" data-cff><button class="pill on" data-v="">Semua</button><button class="pill" data-v="admin">Menunggu admin</button><button class="pill" data-v="bot">Dijawab asisten</button></div><div class="list mt12" data-cl><div class="skel" style="height:120px"></div></div></div>' +
+      (sa ? '<div class="panel"><div class="panel-h"><h3>' + I('settings') + 'Pengaturan chat</h3></div><form class="f" data-cs></form></div>' +
+        '<div class="panel"><div class="panel-h"><h3>' + I('auto_awesome') + 'Kunci API AI (Google Gemini — gratis)</h3></div><div data-ck></div></div>' : '');
+    const q = x => m.querySelector(x);
+    let list = Store.get('a:chat', null), filt = '';
+    const draw = () => {
+      if (!list) return;
+      const L = list.filter(c => !filt || c.status === filt);
+      q('[data-cl]').innerHTML = L.length ? L.map(c => '<button class="li" style="text-align:left;width:100%" data-sesi="' + esc(c.sesi) + '"><span class="avatar-i">' + I(c.status === 'admin' ? 'support_agent' : 'smart_toy') + '</span><div class="grow"><b class="ell">' + esc(c.nama || 'Pengunjung ' + c.sesi.slice(0, 4).toUpperCase()) + '</b><div class="meta"><span class="ell">' + esc(c.ringkas || '') + '</span><span class="small muted">' + esc(tgl(c.terakhir)) + '</span>' + (c.catatan ? '<span class="small" style="color:var(--danger)">' + esc(c.catatan) + '</span>' : '') + '</div></div>' + (c.belum ? '<span class="chip chip-no">' + c.belum + ' baru</span>' : c.status === 'admin' ? '<span class="chip chip-amber">Admin</span>' : '') + '</button>').join('')
+        : '<div class="empty">' + I('forum') + '<p>Belum ada percakapan.</p></div>';
+    };
+    const load = () => A.api('chat.list').then(r => { if (r.success && m.isConnected) { list = r.data; Store.set('a:chat', list); draw(); } else if (!r.success && !list) q('[data-cl]').innerHTML = '<div class="note red">' + esc(r.message) + '</div>'; });
+    draw(); load(); chatTimer = setInterval(() => { if (!m.isConnected) return clearInterval(chatTimer); if (!document.hidden) load(); }, 15000);
+    q('[data-rf]').onclick = load;
+    q('[data-cff]').onclick = e => { const b = e.target.closest('[data-v]'); if (!b) return; filt = b.dataset.v; m.querySelectorAll('[data-cff] .pill').forEach(x => x.classList.toggle('on', x === b)); draw(); };
+    q('[data-cl]').onclick = e => { const b = e.target.closest('[data-sesi]'); if (b) chatSheet(b.dataset.sesi, load); };
+    const cs = q('[data-cs]');
+    if (cs) {
+      const SP = [{ k: 'chat_aktif', t: 'Aktifkan chat di situs', type: 'switch', yaTidak: 1, hint: 'Tombol chat muncul di pojok kanan bawah' },
+        { k: 'chat_mode', t: 'Cara menjawab', type: 'select', opts: [['bot', 'Bot otomatis — jawab dari data toko (gratis, instan)'], ['ai', 'Asisten AI — Gemini, lebih luwes (perlu kunci API gratis)'], ['admin', 'Admin balas manual — semua pesan ke dasbor']] },
+        { k: 'chat_admin', t: 'Izinkan "Bicara dengan admin"', type: 'switch', yaTidak: 1, hint: 'Di mode bot/AI pelanggan bisa beralih ke admin; admin mendapat notifikasi WA' },
+        { k: 'chat_nama', t: 'Nama asisten', ph: 'Asisten ' + (s.nama_toko || 'Toko') }, { k: 'chat_sapa', t: 'Sapaan pembuka', type: 'textarea', rows: 2, ph: 'Halo! 👋 Ada yang bisa dibantu?' },
+        { k: 'chat_ai_model', t: 'Model AI', ph: 'gemini-2.5-flash-lite', hint: 'Biarkan kosong untuk bawaan (paling hemat kuota gratis)' },
+        { k: 'chat_ai_instruksi', t: 'Instruksi tambahan untuk AI (opsional)', type: 'textarea', rows: 3, ph: 'Mis. Ongkos custom mulai Rp150rb. Toko libur hari Minggu.' }];
+      const sv = Object.assign({ chat_mode: 'bot', chat_admin: 'YA' }, s);
+      cs.innerHTML = form(SP, sv) + '<button class="btn btn-ink btn-block" data-go>' + I('save') + 'Simpan Pengaturan Chat</button>';
+      cs.onsubmit = async e => { e.preventDefault(); const r = await saveSet(read(cs, SP), cs.querySelector('[data-go]')); if (r.success) { A.toast('Pengaturan chat disimpan'); VIEWS.chat(m); } };
+      const ck = q('[data-ck]');
+      const kunci = d => { ck.innerHTML = '<p class="muted small" style="margin-top:0">Buat kunci gratis di <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> (login akun Google → <b>Create API key</b>), lalu tempel di sini. Kunci disimpan aman di server (Script Properties), tidak pernah tampil di situs.</p>' +
+        '<form class="f" data-kf><div class="fld"><label>Kunci API</label><input name="key" autocomplete="off" placeholder="' + (d && d.ada ? esc(d.mask) + ' (tersimpan — isi untuk mengganti)' : 'AIza…') + '"></div><div class="row wrap" style="gap:8px"><button class="btn btn-ink btn-sm" data-sv>' + I('key') + 'Simpan kunci</button>' + (d && d.ada ? '<button type="button" class="btn btn-ghost btn-sm" data-uji>' + I('science') + 'Uji AI</button><button type="button" class="btn btn-ghost btn-sm" data-hps style="color:var(--danger)">' + I('delete') + 'Hapus</button>' : '') + '</div></form><div data-hasil class="mt8"></div>' +
+        '<p class="muted small">Kuota gratis Gemini terbatas per menit/hari. Bila kuota habis, chat otomatis memakai bot data toko. Pada paket gratis, Google dapat memakai isi percakapan untuk meningkatkan layanannya — jangan minta data pribadi sensitif di chat.</p>';
+        const kf = ck.querySelector('[data-kf]');
+        kf.onsubmit = async e => { e.preventDefault(); const v = kf.key.value.trim(); if (!v) return; const r = await call('chat.ai', { key: v }, kf.querySelector('[data-sv]')); if (r.success) kunci(r.data); };
+        const u = ck.querySelector('[data-uji]'); if (u) u.onclick = async () => { const r = await call('chat.ai', { uji: 'Berapa harga emas 24K hari ini dan di mana alamat toko?' }, u, { silent: true }); if (r.success && r.data.uji) ck.querySelector('[data-hasil]').innerHTML = r.data.uji.ok ? '<div class="note">' + I('smart_toy') + '<div><b>Jawaban AI:</b><br>' + esc(r.data.uji.teks).replace(/\n/g, '<br>') + '</div></div>' : '<div class="note red">' + I('error') + '<div>AI gagal: ' + esc(r.data.uji.err) + '</div></div>'; };
+        const h = ck.querySelector('[data-hps]'); if (h) h.onclick = async () => { if (!await A.confirm('Hapus kunci API AI?', 'Hapus', true)) return; const r = await call('chat.ai', { key: '__HAPUS__' }, h); if (r.success) kunci(r.data); };
+      };
+      A.api('chat.ai', {}).then(r => kunci(r.success ? r.data : null));
+    }
+  };
+  function chatSheet(sesi, done) {
+    clearInterval(chatSheet._t);
+    const o = A.sheet('<div class="adm-chat"><div class="ac-info" data-ai></div><div class="ac-body" data-ab><div class="skel" style="height:160px"></div></div>' +
+      '<form class="ac-in" data-af><textarea name="t" rows="2" placeholder="Tulis balasan…" maxlength="1500"></textarea><button class="btn btn-ink" data-go>' + I('send') + 'Kirim</button></form>' +
+      '<div class="row wrap mt8" style="gap:6px" data-aa></div></div>', { title: 'Percakapan', lg: true });
+    const box = o.querySelector('.adm-chat'), body = box.querySelector('[data-ab]');
+    const fmt = t => esc(t).replace(/\*([^*\n]+)\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
+    let sesiData = null, n = -1;
+    const draw = d => {
+      sesiData = d.sesi;
+      box.querySelector('[data-ai]').innerHTML = '<b>' + esc(d.sesi.nama || 'Pengunjung') + '</b>' + (d.sesi.hp ? ' · <a href="' + esc(A.waUrl(d.sesi.hp, '')) + '" target="_blank" rel="noopener">' + esc(hp08(d.sesi.hp)) + '</a>' : '') + ' · ' + (d.sesi.status === 'admin' ? '<span class="chip chip-amber">Ditangani admin</span>' : '<span class="chip">Dijawab asisten</span>');
+      if (d.pesan.length !== n) { n = d.pesan.length; body.innerHTML = d.pesan.map(x => '<div class="cm ' + (x.dari === 'tamu' ? 'bt' : 'me') + '"><small>' + esc(x.dari === 'tamu' ? 'Pelanggan' : x.dari === 'admin' ? (x.admin || 'Admin') : x.dari === 'ai' ? 'Asisten AI' : 'Bot') + ' · ' + esc(tgl(x.waktu)) + '</small><div class="cb">' + fmt(x.teks) + '</div></div>').join('') || '<p class="muted small">Belum ada pesan.</p>'; body.scrollTop = body.scrollHeight; }
+      box.querySelector('[data-aa]').innerHTML = (d.sesi.hp ? '<a class="btn btn-wa btn-sm" target="_blank" rel="noopener" href="' + esc(A.waUrl(d.sesi.hp, 'Halo ' + (d.sesi.nama || '') + ', ini admin ' + ((B().settings || {}).nama_toko || '') + ' menindaklanjuti chat Anda di situs kami.')) + '">' + I('chat') + 'Lanjut di WhatsApp</a>' : '') +
+        (d.sesi.status === 'admin' ? '<button class="btn btn-ghost btn-sm" data-tt>' + I('smart_toy') + 'Selesai — kembalikan ke asisten</button>' : '') + '<button class="btn btn-ghost btn-sm" data-hh style="color:var(--danger)">' + I('delete') + 'Hapus</button>';
+    };
+    const ambil = () => A.api('chat.baca', { sesi }).then(r => { if (r.success && box.isConnected) draw(r.data); else if (!box.isConnected) clearInterval(chatSheet._t); });
+    ambil(); chatSheet._t = setInterval(() => { if (!box.isConnected) { clearInterval(chatSheet._t); done && done(); return; } if (!document.hidden) ambil(); }, 5000);
+    const f = box.querySelector('[data-af]');
+    f.onsubmit = async e => { e.preventDefault(); const t = f.t.value.trim(); if (!t) return; const r = await call('chat.balas', { sesi, teks: t }, f.querySelector('[data-go]'), { silent: true }); if (r.success) { f.t.value = ''; ambil(); } };
+    f.t.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && innerWidth > 700) { e.preventDefault(); f.requestSubmit(); } });
+    box.querySelector('[data-aa]').onclick = async e => {
+      if (e.target.closest('[data-tt]')) { const r = await call('chat.tutup', { sesi }, e.target.closest('button')); if (r.success) ambil(); }
+      if (e.target.closest('[data-hh]')) { if (!await A.confirm('Hapus percakapan ini?', 'Hapus', true)) return; const r = await call('chat.hapus', { sesi }, e.target.closest('button')); if (r.success) { o.close(); done && done(); } }
+    };
+  }
 
   /* ======================= POSTER & WIDGET HALAMAN ======================= */
   VIEWS.halaman = function (m) {
