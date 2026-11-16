@@ -112,7 +112,7 @@
       '<div class="lot-p"><small>' + (FINAL.indexOf(s) > -1 && b.pemenang ? 'Harga akhir' : live && b.jumlah ? 'Tertinggi' : 'Harga awal') + '</small><b>' + rp(FINAL.indexOf(s) > -1 && b.harga_final ? b.harga_final : harga(b)) + '</b>' +
       (live && b.pemimpin ? '<em>' + esc(b.pemimpin) + '</em>' : b.pemenang ? '<em>' + I('emoji_events') + esc(b.pemenang) + '</em>' : '') + '</div>' +
       (t ? '<div class="lot-cd"><small>' + (live ? 'Sisa' : 'Mulai') + '</small><span class="cdbox sm" data-cdb="' + (t - offset) + '" data-cdend="1">' + kotak(t - now()) + '</span></div>' : '') +
-      '<span class="btn ' + (live ? 'btn-amber' : 'btn-soft') + ' btn-sm btn-block">' + I(live ? 'gavel' : soon ? 'notifications' : 'visibility') + (live ? 'Tawar Sekarang' : soon ? 'Lihat Lot' : 'Lihat Hasil') + '</span></div></a>';
+      '<span class="btn ' + (live ? 'btn-amber' : 'btn-soft') + ' btn-sm btn-block">' + I(live ? 'gavel' : soon ? 'notifications' : 'visibility') + (live ? 'Tawar' : soon ? 'Lihat Lot' : 'Lihat Hasil') + '</span></div></a>';
   }
   function daftarPage(el) {
     const g = grup(), L = A.lelangState ? A.lelangState() : {};

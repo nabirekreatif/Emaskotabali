@@ -77,18 +77,21 @@
   function build() {
     if (root) return;
     root = document.createElement('div'); root.className = 'chat-w'; root.hidden = true;
-    root.innerHTML = '<button class="chat-fab" type="button" aria-label="Chat dengan kami">' + I('forum', 'fill') + '<span class="cf-n" hidden></span></button>' +
-      '<section class="chat-p" role="dialog" aria-label="Chat" hidden><header><span class="ch-av">' + I('support_agent', 'fill') + '</span><div class="grow"><b data-cn></b><small data-cs></small></div><button class="icon-btn" data-cx aria-label="Tutup">' + I('close') + '</button></header>' +
+    root.innerHTML = '<div class="chat-bd" data-cbd></div><button class="chat-fab" type="button" aria-label="Chat dengan kami">' + I('forum', 'fill') + '<span class="cf-n" hidden></span></button>' +
+      '<section class="chat-p" role="dialog" aria-modal="true" aria-label="Chat" hidden><i class="ch-grip" aria-hidden="true"></i><header><span class="ch-av">' + I('support_agent', 'fill') + '</span><div class="grow"><b data-cn></b><small data-cs></small></div><button class="icon-btn" data-cx aria-label="Tutup">' + I('close') + '</button></header>' +
       '<div class="ch-body" data-cbody></div><div class="ch-chips" data-chips></div>' +
       '<form class="ch-in" data-cf><input name="t" maxlength="600" autocomplete="off" placeholder="Tulis pertanyaan…" aria-label="Pesan"><button class="ch-send" aria-label="Kirim">' + I('send', 'fill') + '</button></form></section>';
     document.body.appendChild(root);
     const fab = root.querySelector('.chat-fab'), pnl = root.querySelector('.chat-p');
     fab.onclick = () => buka(!pnl.hidden ? false : true);
     root.querySelector('[data-cx]').onclick = () => buka(false);
+    root.querySelector('[data-cbd]').onclick = () => buka(false);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && terbuka()) buka(false); });
+    window.addEventListener('popstate', () => { if (terbuka() && dorong) { dorong = false; buka(false, true); } });
     root.querySelector('[data-cf]').onsubmit = e => { e.preventDefault(); const i = e.target.t, v = i.value.trim(); if (!v || sibuk) return; i.value = ''; kirim(v); };
     root.addEventListener('click', e => {
       const c = e.target.closest('[data-q]'); if (c) { if (c.dataset.q === '__admin') return mintaAdmin(); return kirim(c.dataset.q); }
-      if (e.target.closest('[data-cl]') && innerWidth < 700) buka(false);
+      if (e.target.closest('[data-cl]') && hp()) { const h = e.target.closest('[data-cl]').getAttribute('href'); e.preventDefault(); buka(false); setTimeout(() => { location.hash = h; }, 260); }
       const f = e.target.closest('[data-adm-go]'); if (f) { const fm = f.closest('form'); st.nama = fm.nm.value.trim(); st.hp = fm.hp.value.trim(); save(); fm.remove(); kirim(fm.dataset.t || 'Saya ingin bicara dengan admin.', true); }
     });
   }
@@ -106,9 +109,16 @@
     header();
     if (scroll !== false) body.scrollTop = body.scrollHeight;
   }
-  function buka(v) {
+  let dorong = false;
+  const hp = () => matchMedia('(max-width: 699px)').matches;
+  function buka(v, dariBack) {
     build(); const pnl = root.querySelector('.chat-p');
+    if (!v && pnl.hidden) return;
     pnl.hidden = !v; root.classList.toggle('open', v);
+    document.body.classList.toggle('chat-open', v);
+    // tombol kembali di HP menutup chat (bukan pindah halaman)
+    if (v && hp() && !dorong) { try { history.pushState({ chat: 1 }, '', location.href); dorong = true; } catch (e) { } }
+    if (!v && dorong && !dariBack) { dorong = false; try { history.back(); } catch (e) { } }
     if (v) { st.baru = 0; save(); badge(); render(); ambil(); setTimeout(() => { if (innerWidth >= 700) root.querySelector('[data-cf] input').focus(); }, 60); }
     atur();
   }

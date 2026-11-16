@@ -1520,7 +1520,7 @@ html[data-theme=dark] .win-ticket { background: var(--surface); }
 .gal-sw a small { display: inline-flex; min-width: 20px; height: 18px; padding: 0 6px; border-radius: 9px; align-items: center; justify-content: center; background: rgba(255, 255, 255, .12); opacity: 1; }
 .gal-sw a.on small { background: rgba(42, 30, 11, .15); }
 @media (min-width: 700px) { .gal-sw { display: inline-flex; flex-wrap: wrap; overflow: visible; border-radius: var(--pill); } }
-.gal-stat { display: flex; gap: 12px; margin-top: 10px; font: 600 12px var(--f-body); opacity: .85; } .gal-stat span { display: inline-flex; align-items: center; gap: 4px; } .gal-stat .mi { font-size: 16px; }
+.gal-stat { display: flex; gap: 12px; margin-top: 10px; font: 600 12px var(--f-body); opacity: .85; } .gal-stat > span { display: inline-flex; align-items: center; gap: 4px; } .gal-stat .mi { font-size: 16px; }
 .gal-tb { position: relative; flex: none; display: inline-flex; align-items: center; gap: 5px; height: 44px; padding: 0 12px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 6px 18px rgba(0, 0, 0, .06); font: 600 13px var(--f-body); color: var(--ink); }
 .gal-tb .mi { font-size: 20px; } .gal-tb .mi + span + .mi { font-size: 18px; margin-left: -2px; color: var(--ink-3); }
 .gal-tb.act { border-color: #B8892B; background: var(--amber-soft); }
@@ -1583,7 +1583,7 @@ html[data-theme=dark] .win-ticket { background: var(--surface); }
 .bs-win > .mi { color: #B8892B; font-size: 24px; }
 .bs-win small { display: block; font-size: 11px; color: var(--amber-ink); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
 .bs-win b { display: block; font: 700 15px var(--f-head); }
-.bs-win span { display: block; font-size: 12.5px; color: var(--ink-2); }
+.bs-win .grow > span { display: block; font-size: 12.5px; color: var(--ink-2); }
 .st-hangus .bs-win { background: var(--danger-soft, #FEE2E2); } .st-hangus .bs-win > .mi { color: var(--danger); }
 .bs-next { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; line-height: 18px; color: var(--ink-2); padding-top: 10px; border-top: 1px dashed var(--line); }
 .bs-next .mi { font-size: 18px; color: var(--amber-ink); flex: none; }
@@ -1625,7 +1625,7 @@ html[data-theme=dark] .win-ticket { background: var(--surface); }
 /* galeri: semua galeri terlihat (tidak perlu digeser) */
 .gal-sw { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 6px; overflow: visible; padding: 5px; border-radius: 18px; flex-wrap: wrap; }
 .gal-sw a { display: flex; align-items: center; gap: 6px; justify-content: flex-start; min-width: 0; padding: 9px 10px; border-radius: 13px; white-space: normal; }
-.gal-sw a span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+.gal-sw a span:not(.mi) { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
 .gal-sw a .mi { font-size: 18px; flex: none; }
 @media (min-width: 700px) { .gal-sw { display: inline-grid; grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: minmax(130px, auto); } }
 /* tombol Filter & Tampilan: ikon selalu tampil, teks disembunyikan di HP */
@@ -1708,7 +1708,7 @@ html[data-theme=dark] .cm.admin .cb { background: #10291A; border-color: #1F5F35
 .ring-hero h1 { font: 800 clamp(24px, 6vw, 38px)/1.15 var(--f-head); margin: 10px 0 6px; } .ring-hero h1 span { color: #F0D98C; }
 .ring-hero p { margin: 0 auto; max-width: 520px; opacity: .85; font-size: 13.5px; }
 .rh-pills { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
-.rh-pills span { display: inline-flex; align-items: center; gap: 3px; padding: 5px 10px; border-radius: var(--pill); border: 1px solid rgba(255, 255, 255, .2); font: 600 11.5px var(--f-body); } .rh-pills .mi { font-size: 15px; color: #F0D98C; }
+.rh-pills > span { display: inline-flex; align-items: center; gap: 3px; padding: 5px 10px; border-radius: var(--pill); border: 1px solid rgba(255, 255, 255, .2); font: 600 11.5px var(--f-body); } .rh-pills .mi { font-size: 15px; color: #F0D98C; }
 .ring-grid { display: grid; gap: 12px; margin-top: 14px; }
 @media (min-width: 900px) { .ring-grid { grid-template-columns: minmax(0, 1.3fr) minmax(300px, .7fr); align-items: start; } }
 .rg-h { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
@@ -1747,3 +1747,32 @@ html[data-theme=dark] .rg-res { background: #2A2116; border-color: #5A4420; }
 .rg-cta h3 { font: 800 16px var(--f-head); margin: 0 0 2px; } .rg-cta p { margin: 0; font-size: 12px; opacity: .8; } .rg-cta .btn { flex: none; }
 @media (max-width: 420px) { .rg-cta { flex-direction: column; align-items: stretch; } }
 .chat-p > header, .ch-chips, .ch-in { flex: 0 0 auto; } .chat-p > .ch-body { flex: 1 1 auto; min-height: 0; }
+
+/* v6.2 — chat ala aplikasi: di HP tampil sebagai lembar bawah layar penuh, latar diburamkan, menu bawah disembunyikan */
+.chat-bd { display: none; }
+.ch-grip { display: none; }
+body.chat-open .chat-bd { display: block; position: fixed; inset: 0; z-index: -1; background: rgba(18, 13, 6, .32); backdrop-filter: blur(8px) saturate(.9); -webkit-backdrop-filter: blur(8px) saturate(.9); animation: bdIn .25s ease both; }
+@keyframes bdIn { from { opacity: 0; } }
+.chat-w { isolation: isolate; }
+.ch-in input { font-size: 16px; }
+@media (max-width: 699px) {
+  body.chat-open { overflow: hidden; }
+  body.chat-open .bnav, body.chat-open .stickybar, body.chat-open .chat-fab { display: none !important; }
+  body.chat-open .chat-w { position: fixed; inset: 0; z-index: 70; }
+  .chat-p { left: 0 !important; right: 0 !important; top: auto; bottom: 0 !important; width: 100% !important; height: 92vh !important; height: 92dvh !important; max-height: none; border-radius: 24px 24px 0 0; border: 0; box-shadow: 0 -18px 50px -12px rgba(0, 0, 0, .45); animation: sheetUp .32s cubic-bezier(.2, .9, .25, 1) both; }
+  @keyframes sheetUp { from { transform: translateY(100%); } }
+  .ch-grip { display: block; position: absolute; top: 7px; left: 50%; width: 42px; height: 5px; margin-left: -21px; border-radius: 3px; background: rgba(255, 255, 255, .45); z-index: 2; }
+  .chat-p header { padding: 18px 14px 14px; }
+  .ch-in { padding: 10px 12px calc(10px + var(--safe-b)); }
+  .ch-body { padding: 14px; }
+  .cm { max-width: 88%; }
+}
+@media (min-width: 700px) { body.chat-open .chat-bd { background: rgba(18, 13, 6, .12); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); } }
+.rr-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.rr-acts .btn { min-width: 0; padding: 0 10px; } .rr-acts .btn span:not(.mi) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rg-cta .btn { white-space: nowrap; }
+.rg-tabs button span:not(.mi) { line-height: 1.2; text-align: center; }
+@media (max-width: 360px) { .rg-tabs button { font-size: 11px; padding: 9px 2px; } .rh-pills > span { font-size: 11px; padding: 4px 8px; } }
+/* v6.2 — tombol tidak pernah meluber: teks panjang boleh turun baris di layar sempit */
+.btn { max-width: 100%; }
+@media (max-width: 480px) { .btn:not(.icon-btn) { white-space: normal; text-align: center; line-height: 1.2; padding-top: 6px; padding-bottom: 6px; } .row.wrap > .btn.grow { flex-basis: 140px; } }

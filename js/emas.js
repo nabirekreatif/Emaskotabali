@@ -214,7 +214,7 @@
         '<div class="ul-tabs mt16" role="tablist"><button class="on" data-t="tabel">Harga Buyback</button><button data-t="calc">Kalkulator Buyback</button></div>' +
         '<div class="card pad mt12" data-tb></div>' +
         '<div class="note mt12">' + I('info') + '<div>' + esc(T('jual_catatan')) + '</div></div>' +
-        '<div class="row mt16 wrap"><button class="btn btn-wa grow" data-jual>' + I('chat', 'fill') + 'Jual Emas via WhatsApp</button><a class="btn btn-ghost grow" href="#/lokasi">' + I('storefront') + 'Lokasi Toko</a></div></div>';
+        '<div class="row mt16 wrap"><button class="btn btn-wa grow" data-jual>' + I('chat', 'fill') + 'Jual via WhatsApp</button><a class="btn btn-ghost grow" href="#/lokasi">' + I('storefront') + 'Lokasi Toko</a></div></div>';
       const tb = el.querySelector('[data-tb]');
       const draw = t => {
         tb.innerHTML = t === 'calc' ? kalkulator('buyback') : '<div class="tb-head"><h3>Harga Buyback Emas</h3><p class="muted small">Update: ' + esc(tgl(e.update) || 'hari ini') + '</p></div>' + tabelHarga('buyback');

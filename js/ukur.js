@@ -76,7 +76,7 @@
     r.innerHTML = '<div class="rr-top"><div><small>Perkiraan ukuran cincin</small><b class="rr-big">EU ' + hasil.eu + '</b><span class="rr-us">± US ' + hasil.us + '</span></div><span class="chip chip-ok">' + I('check') + esc(hasil.cara) + '</span></div>' +
       '<div class="rr-grid"><div><small>Lingkar jari</small><b>' + koma(hasil.lingkar) + ' mm</b></div><div><small>Diameter dalam</small><b>' + koma(hasil.dia, 2) + ' mm</b></div></div>' +
       '<p class="muted small">Nomor adalah perkiraan konversi, bukan jaminan standar semua toko. Konfirmasikan ke admin sebelum produksi.</p>' +
-      '<div class="row wrap" style="gap:8px"><button class="btn btn-wa grow" data-kirim>' + I('chat') + 'Kirim hasil ke WhatsApp</button><a class="btn btn-ghost grow" href="#/katalog">' + I('diamond') + 'Lihat cincin</a></div>';
+      '<div class="rr-acts"><button class="btn btn-wa" data-kirim>' + I('chat') + '<span>Kirim ke WA</span></button><a class="btn btn-ghost" href="#/katalog">' + I('diamond') + '<span>Lihat cincin</span></a></div>';
     r.querySelector('[data-kirim]').onclick = () => A.pickBranch(() => 'Halo ' + T('nama_toko') + ', saya ingin konfirmasi ukuran cincin.\nCara ukur: ' + hasil.cara + '\nDiameter dalam: ' + koma(hasil.dia, 2) + ' mm\nLingkar: ' + koma(hasil.lingkar) + ' mm\nPerkiraan ukuran: EU ' + hasil.eu + ' / US ' + hasil.us + '\nMohon bantu cek ukuran yang sesuai.');
     el.querySelectorAll('[data-rt-body] tr').forEach(tr => tr.classList.toggle('hl', Math.abs(Number(tr.dataset.d) - hasil.dia) === Math.min.apply(null, SIZES.map(s => Math.abs(s[0] - hasil.dia)))));
     if (gulir) r.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
